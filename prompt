@@ -1,0 +1,30 @@
+TODO:
+- Implement an internal Dice Rolling feature
+- Refactor to create hierarchy processing
+  1. Identify locations and create fictional top level short descriptions from the map
+  2. For each region, ROLL (1d6) for the number of locations and characters to create. Store this result temporarily.
+  3. Total the number of locations and number of characters per region. Multiply by 3. Add the number of regions.
+  4. Ask the user if they want to make this many GPT queries. Wait for their response. 
+  5. For each region, generate several locations and characters (random 1d6 for each category)
+  6. For each location
+    - Generate an isometric map image using DALL-E
+    - Create a description of the location
+    - Roll 1d10 for "hidden feature". The higher the number, the more rare or special secret features exist at this location. Lower numbers are very mundane.
+    - Store map image in /images folder
+    - Save the path in the world JSON file associated with the location
+  7. For each character
+    - Generate a portrait image using DALL-E
+    - Create a physical description of the character
+    - Create a personality or short biography of the person
+    - Store the portrait in the /images folder
+    - Save the path in the world JSON file associated with the character
+  8. Give the whole JSON file to GPT4 for review
+    - Suggest 6 plotlines that span across one or several regions.
+    - Suggest 2 grand narrative quests
+  9. Compile into a collection of markdown files
+    - Opening world description and context window
+    - A document for each region that includes 1 main photo, a base description
+      - All locations and their respective photos
+      - All characters and their portraits and backstory
+      - A collection of the suggested quests
+
