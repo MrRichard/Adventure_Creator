@@ -1,28 +1,20 @@
-import sys
-import os, json
-from adventure_generation.map_analyzer import MapAnalyzer
-from adventure_generation.context_extractor import ContextExtractor
-from adventure_generation.world_builder import WorldBuilder
-#from adventure_generation.document_generator import DocumentGenerator
-# from plot_drama_generator import PlotDramaGenerator
-# from region_detailer import RegionDetailer
-# from quest_line_generator import QuestLineGenerator
-# from random_encounter_table import RandomEncounterTable
-from adventure_generation.gpt4o_client import GPT4oClient
-from adventure_generation.ollama_client import ollamaClient
-import random
-
-import threading, queue
+import sys # graceful exit option
+import os # cause files
+import json # I use too much
+import random # for dice rolls
+import threading, queue # for processing multiple jobs at once.
+from adventure_generation.map_analyzer import MapAnalyzer # A special GPT-only feature (for now)
+from adventure_generation.context_extractor import ContextExtractor # 
+from adventure_generation.world_builder import WorldBuilder # does all the work
+from adventure_generation.gpt4o_client import GPT4oClient # for money runs
+from adventure_generation.ollama_client import ollamaClient # for local runs
 
 # By default, I want to use GPT as little as possible despite gpt4o-mini being 
 # extremely affordable. While testing, I will use ollama when possible.
+global USING_MONEY
 USING_MONEY = True
 
 def world_builder_task(context, region, llm_client, output_queue):
-    
-    print(f" - starting thread for region: {region['LocationName']}")
-    world_builder = WorldBuilder(context, region, llm_client)
-    
     # This starts the region development chain. This looks like:
     # 1. Describe the region in generalized detail
     # 2. Create each new location and describe it in detail
@@ -30,13 +22,26 @@ def world_builder_task(context, region, llm_client, output_queue):
     # 4. Create a custom encounter table of random events for this region
     # 5. Create a minor side quest that connect characters and locations.
     
+    print(f" - starting thread for region: {region['LocationName']}")
+    world_builder = WorldBuilder(context, region, llm_client)
+    
     built = world_builder.region_development_chain()
     output_queue.put(built)
 
-def main(prompt_file, map_image):
-    # Initialize GPT-4o client
+def main(prompt_file, map_image, settings):
+    # Initialize LLM clients (both)
     gpt4o_client = GPT4oClient()
-    ollama_client = ollamaClient()
+    if not USING_MONEY:
+        ollama_client = ollamaClient()
+        
+    # Extract context from the prompt file
+    print("- reading the context file")
+    context_extractor = ContextExtractor(prompt_file, map_image, settings)
+    
+    # Check if the output directory exists, if not, create it
+    output_directory = 'json_outputs'
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
 
     # Check to see if base map description json file exists
     json_output_path = 'json_outputs/map_description.json'
@@ -48,14 +53,13 @@ def main(prompt_file, map_image):
     else:
         # We use GPT-4o to analyze the map 
         # I couldn't get llava to read any of the text on my sample maps
-        print("- studying the map with GPT4o")
-        map_analyzer = MapAnalyzer(map_image, gpt4o_client)
+        print(f"- studying the map with GPT4o: {context_extractor.get_input_imagepath()}")
+        map_analyzer = MapAnalyzer(
+            context_extractor.get_input_imagepath(),
+            gpt4o_client)
+        
+        # This is so cool
         world = map_analyzer.identify_regions()
-
-    # Extract context from the prompt file
-    print("- reading the context file")
-    context_extractor = ContextExtractor(prompt_file)
-    context = context_extractor.extract_context()
 
     # Start Rolling for a random number of characters and locations in each region
     for region in world['regions']:
@@ -102,13 +106,15 @@ def main(prompt_file, map_image):
     threads = []
     max_threads = 3
     
+    # We are giving the worker the context_extractor object, along with our chosen llm model
+    # TODO: review how the LLM logic is used. We might only need to do this once.
     def worker():
         while not region_queue.empty():
             region = region_queue.get()
             if USING_MONEY:
-                world_builder_task(context, region, gpt4o_client, output_queue)
+                world_builder_task(context_extractor, region, gpt4o_client, output_queue)
             else:
-                world_builder_task(context, region, ollama_client, output_queue)
+                world_builder_task(context_extractor, region, ollama_client, output_queue)
             region_queue.task_done()
             
     for i in range(max_threads):
@@ -133,13 +139,14 @@ def main(prompt_file, map_image):
     with open(expanded_world_json_path, 'w') as file:
         json.dump(world, file, indent=4)
     
-    print("Adventure generation complete!")
+    print("World generation complete!")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python main.py <prompt_file> <map_image>")
+    if len(sys.argv) != 4:
+        print("Usage: python main.py <prompt_file> <map_image> <settings.json>")
         sys.exit(1)
     
     prompt_file = sys.argv[1]
     map_image = sys.argv[2]
-    main(prompt_file, map_image)
+    settings = sys.argv[3]
+    main(prompt_file, map_image, settings)

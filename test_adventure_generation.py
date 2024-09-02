@@ -4,6 +4,8 @@ from adventure_generation.map_analyzer import MapAnalyzer
 from adventure_generation.region_detailer import RegionDetailer
 from adventure_generation.gpt4o_client import GPT4oClient
 
+# TODO: Update this file
+
 def test_adventure_generation():
     # Set up paths
     prompt_file_path = "sample_inputs/ariel_coast.txt"

@@ -1,6 +1,15 @@
 import os
 import openai
 import json
+import requests
+import string
+import random
+
+import logging
+from datetime import datetime
+
+# Configure logging
+logging.basicConfig(filename='rendering_errors.log', level=logging.ERROR, format='%(asctime)s - %(message)s')
 
 class GPT4oClient:
     def __init__(self):
@@ -9,9 +18,10 @@ class GPT4oClient:
         self.system_role = """
         You are a ttrpg game world creator and game designer assistant. 
         You help build the setting for amazing adventures.
-        You want to avoid fantasy tropes and commonly used language, and instead emulate the styles of historical travel writers.
+        You want to avoid fantasy tropes and commonly used language.
         """
         self.system_role_msg = {"role": "system","content": [{"type": "text","text": f"{self.system_role}"}]}
+        self.image_storage = "images"
 
     def _create_messages(self, prompt):
         msgs=[self.system_role_msg, {"role": "user", "content": [{"type": "text","text": f"{prompt}"}]}]
@@ -60,7 +70,7 @@ class GPT4oClient:
         )
         return response.choices[0].message.content
     
-    def generate_detailed_region_description(self, region=''):
+    def generate_detailed_region_description(self, region, world_info='', style_input=''):
         if region =='':
             return {}
         
@@ -68,6 +78,8 @@ class GPT4oClient:
         INSTRUCTIONS: Expand upon the simple description for this region:
         Region Name: {} - A {}.
         Region Short Description: {}
+        World Info: {}
+        Writing Style: {}
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
         This content should be in the "regionDetails" object. Use this template:
         
@@ -76,7 +88,9 @@ class GPT4oClient:
         '''.format(
             region['LocationName'],
             region['LocationType'],
-            region['ShortDescription']
+            region['ShortDescription'],
+            world_info,
+            style_input
         )
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -90,10 +104,12 @@ class GPT4oClient:
         return self._parse_json(response.choices[0].message.content)
         
     
-    def generate_location(self, region):
+    def generate_location(self, region, world_info='', style_input=''):
         prompt = """
         INSTRUCTIONS: Create a fictional signficant locations for the location of {}, a {}.
         Region Short Description: {}
+        World Info: {}
+        Writing Style: {}
         Write a brief but creative description of the physical description and appearance of a place.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
         The output should consist of two items: "description" and "lore"
@@ -102,7 +118,9 @@ class GPT4oClient:
         """.format(
             region['LocationName'],
             region['LocationType'],
-            region['ShortDescription']
+            region['ShortDescription'],
+            world_info,
+            style_input
         )
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -116,10 +134,12 @@ class GPT4oClient:
         return self._parse_json(response.choices[0].message.content)
     
     
-    def generate_character(self, region):
+    def generate_character(self, region, world_info='', style_input=''):
         prompt = """
         INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}.
         Region Short Description: {}
+        World Info: {}
+        Writing Style: {}
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
         The output should consist of two items: "description" and "personality"
         The "description" should be used to describe the visible appearance of this character (1-2 paragraphs).
@@ -127,7 +147,9 @@ class GPT4oClient:
         """.format(
             region['LocationName'],
             region['LocationType'],
-            region['ShortDescription']
+            region['ShortDescription'],
+            world_info,
+            style_input
         )
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -140,19 +162,22 @@ class GPT4oClient:
         )
         return self._parse_json(response.choices[0].message.content)
     
-    def generate_regional_drama(self, region):
-        prompt = prompt = """
+    def generate_regional_drama(self, region, world_info='', style_input=''):
+        prompt = """
         INSTRUCTIONS: Review all of the characteristics of the selected region and develop an interesting task, question or quest for the region.
         Please return a paragraph and be merely a prompt or suggestion used for direction.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
         The output should consist of two objects: "title" and "description"
-        
+        World Info: {}
+        Writing Style: {}
         This drama is occurring in {}, a {}. 
         Short description: {}\n
         """.format(
             region['LocationName'],
             region['LocationType'],
-            region['ShortDescription']
+            region['ShortDescription'],
+            world_info,
+            style_input
         )
         
         prompt+="Characters:\n"
@@ -174,19 +199,20 @@ class GPT4oClient:
         )
         return self._parse_json(response.choices[0].message.content)
     
-    def generate_random_encounter(self, region):
-        prompt = prompt = """
+    def generate_random_encounter(self, world_info, region):
+        prompt = """
         INSTRUCTIONS: Review all of the characteristics of the selected region and create a short but interesting random encounter.
-        Please return 1-2 paragraphs describing a detail description of the situation. Some can be good, some situations can be bad.
+        Please return 1-2 paragraphs describing a detail description of the situation or opportunity. Some can be good, some situations can be bad.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
         The output should consist of one object: "encounter"
-        
         This drama is occurring in {}, a {}. 
         Short description: {}\n
+        World Info: 
         """.format(
             region['LocationName'],
             region['LocationType'],
-            region['ShortDescription']
+            region['ShortDescription'],
+            world_info
         )
         
         prompt+="Characters:\n"
@@ -208,40 +234,55 @@ class GPT4oClient:
         )
         return self._parse_json(response.choices[0].message.content)
     
-    def generate_character_portrait(self, prompt):
-        response = openai.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size="1024x1024",
-            quality="standard",
-            n=1
-        )
+    def _parse_url(self, image_url, image_storage):
+        # Am I overwriting the basic image storage, probably.
+        if image_storage:
+            self.image_storage=image_storage
         
-        return response.data[0].url
+        # Does this folder exist? make it so.
+        if not os.path.exists(self.image_storage):
+            os.makedirs(self.image_storage)
+        
+        # Create a random short jpg file name
+        # TODO: Get character names for image?
+        filename = ''.join(random.choices(string.ascii_letters + string.digits, k=8)) + '.jpg'
+        file_path = os.path.join(self.image_storage, filename)
+        
+        # Download the image located at the generated URL and save it
+        image_data = requests.get(image_url).content
+        with open(file_path, 'wb') as handler:
+            handler.write(image_data)
+        
+        # Return the relative path of the downloaded image
+        return file_path
+    
+    def generate_character_portrait(self, character_description, illustration_style='', image_storage='character_illustrations'):
+        
+        # Do not use promptless
+        if not character_description:
+            print("Warning: character_description cannot be empty. Operation aborted.")
+            return None
+        
+        prompt = f"""
+        Generate a character portrait based on the following description: {character_description}
+        Illustration style: {illustration_style}
+        """
 
-    def generate_region_details(self, region):
-        prompt = f"Region: {region}\nGenerate region details."
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=self._create_messages(prompt),
-            max_tokens=500
-        )
-        return response.choices[0].text.strip()
-
-    def generate_quest_lines(self, region, details, plot_drama):
-        prompt = f"Region: {region}\nDetails: {details}\nPlot Drama: {plot_drama}\nGenerate quest lines."
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=self._create_messages(prompt),
-            max_tokens=500
-        )
-        return response.choices[0].text.strip()
-
-    def generate_random_encounters(self, region, details):
-        prompt = f"Region: {region}\nDetails: {details}\nGenerate random encounters."
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=prompt,
-            max_tokens=500
-        )
-        return response.choices[0].text.strip()
+        try:
+            response = openai.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+        except openai.BadRequestError as e:
+            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}"
+            logging.error(error_message)
+            print("An error occurred while generating the image. Details have been logged.")
+            return None
+        
+        # Get the generated image URL
+        return self._parse_url(response.data[0].url, image_storage)
+        
+        

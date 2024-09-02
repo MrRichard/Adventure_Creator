@@ -4,8 +4,8 @@ import requests
 
 class WorldBuilder:
     
-    def __init__(self, context, region, llm_client):
-        self.context = context
+    def __init__(self, context_extractor_object, region, llm_client):
+        self.context_extractor = context_extractor_object
         if isinstance(region, dict):
             self.region = region
         else:
@@ -24,14 +24,22 @@ class WorldBuilder:
         
         # Step 1 - Run Create Region Description
         print(f"{self.region['LocationName']} - Creating a regional description")
-        regional_description = self.llm_client.generate_detailed_region_description(self.region)
+        regional_description = self.llm_client.generate_detailed_region_description(
+            self.region,
+            self.context_extractor.get_context(),
+            self.context_extractor.get_writing_style()
+        )
         self.region.update(regional_description)
         
-        # Step 2 - Create the locationss
+        # Step 2 - Create the locations
         created_locations = {}
         print(f"{self.region['LocationName']} needs {self.region['num_locations']} locations")
         for i in range(self.region['num_locations']):
-            loc=self.llm_client.generate_location(self.region)
+            loc=self.llm_client.generate_location(
+                self.region,
+                self.context_extractor.get_context(),
+                self.context_extractor.get_writing_style()
+            )
             created_locations[i] = loc
         self.region['locations'] = created_locations
             
@@ -39,15 +47,21 @@ class WorldBuilder:
         created_characters = {}
         print(f"{self.region['LocationName']} needs {self.region['num_characters']} characters")
         for i in range(self.region['num_characters']):
-            char=self.llm_client.generate_character(self.region)
+            char=self.llm_client.generate_character(
+                self.region,
+                self.context_extractor.get_context(),
+                self.context_extractor.get_writing_style()
+            )
             created_characters[i] = char
         self.region['characters'] = created_characters
         
         # Step 4 - Create a custom encounter table based on a d10
         print(f"{self.region['LocationName']} - Quest or plot prompts")
         created_quests = {}
-        for i in range(self.region['num_characters']):
-            quest=self.llm_client.generate_regional_drama(self.region)
+        for i in range(1, 11):
+            quest=self.llm_client.generate_regional_drama(
+                self.region, 
+                self.context_extractor.get_writing_style())
             created_quests[i] = quest
         self.region['quests'] =  created_quests
         
@@ -55,8 +69,20 @@ class WorldBuilder:
         print(f"{self.region['LocationName']} - generating a random encounter table")
         created_encounters = {}
         for i in range(1, 11):
-            encounter=self.llm_client.generate_random_encounter(self.region)
+            encounter=self.llm_client.generate_random_encounter(
+                self.region,
+                self.context_extractor.get_context()
+            )
             created_encounters[i] = encounter
         self.region['random_encounter_table'] =  created_encounters
-                
+        
+        # Step 6 - Create character portraits
+        print(f"{self.region['LocationName']} - generating character portraits")
+        for i in range(self.region['num_characters']):
+            portrait_file=self.llm_client.generate_character_portrait(
+                character_description = self.region['characters'][i]['description'],
+                illustration_style=self.context_extractor.get_visual_style()
+            )
+            self.region['characters'][i]['portrait'] =  portrait_file
+        
         return self.region
