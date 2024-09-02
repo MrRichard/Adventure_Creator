@@ -138,6 +138,20 @@ def main(prompt_file, map_image, settings):
     expanded_world_json_path = 'json_outputs/expanded_world.json'
     with open(expanded_world_json_path, 'w') as file:
         json.dump(world, file, indent=4)
+        
+    # Parse the json file into a collection of html files
+    # Page 1: Cover art page (not yet)
+    # Page 2: Artist information, generation date (not yet)
+    # Page 3: Map page (not yet)
+    # Page 4: Genral World description 
+    # Iterate through each region
+    # header for the region
+    # region image
+    # region description
+    # Locations
+    # Characters 
+    # Quests
+    # Random Encounters
     
     print("World generation complete!")
 

@@ -25,6 +25,7 @@ class ContextExtractor:
     def _read_context(self):
         with open(self.input_context_file, "r") as file:
             context = file.read()
+        context = context.strip(' \t\n\r')
         return context
     
     def _read_settings(self):

@@ -58,7 +58,7 @@ class WorldBuilder:
         # Step 4 - Create a custom encounter table based on a d10
         print(f"{self.region['LocationName']} - Quest or plot prompts")
         created_quests = {}
-        for i in range(1, 11):
+        for i in range(1, 7):
             quest=self.llm_client.generate_regional_drama(
                 self.region, 
                 self.context_extractor.get_writing_style())
@@ -66,7 +66,7 @@ class WorldBuilder:
         self.region['quests'] =  created_quests
         
         # Step 5  - Create a random encounter table
-        print(f"{self.region['LocationName']} - generating a random encounter table")
+        print(f"{self.region['LocationName']} - Generating a random encounter table")
         created_encounters = {}
         for i in range(1, 11):
             encounter=self.llm_client.generate_random_encounter(
@@ -77,12 +77,23 @@ class WorldBuilder:
         self.region['random_encounter_table'] =  created_encounters
         
         # Step 6 - Create character portraits
-        print(f"{self.region['LocationName']} - generating character portraits")
+        print(f"{self.region['LocationName']} - Generating character portraits")
         for i in range(self.region['num_characters']):
             portrait_file=self.llm_client.generate_character_portrait(
                 character_description = self.region['characters'][i]['description'],
+                world_info=self.context_extractor.get_context(),
                 illustration_style=self.context_extractor.get_visual_style()
             )
             self.region['characters'][i]['portrait'] =  portrait_file
+            
+        # Step 7 - Create location maps 
+        print(f"{self.region['LocationName']} - Generating location maps")
+        for i in range(self.region['num_locations']):
+            location_map=self.llm_client.generate_location_maps(
+                location_description = self.region['locations'][i]['description'],
+                world_info=self.context_extractor.get_context(),
+                illustration_style=self.context_extractor.get_visual_style()
+            )
+            self.region['locations'][i]['illustration'] =  portrait_file
         
         return self.region

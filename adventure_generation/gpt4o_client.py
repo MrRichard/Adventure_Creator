@@ -76,7 +76,7 @@ class GPT4oClient:
         
         prompt = '''
         INSTRUCTIONS: Expand upon the simple description for this region:
-        Region Name: {} - A {}.
+        Region Name: {} - a {}.
         Region Short Description: {}
         World Info: {}
         Writing Style: {}
@@ -105,7 +105,7 @@ class GPT4oClient:
         
     
     def generate_location(self, region, world_info='', style_input=''):
-        prompt = """
+        prompt = '''
         INSTRUCTIONS: Create a fictional signficant locations for the location of {}, a {}.
         Region Short Description: {}
         World Info: {}
@@ -115,7 +115,7 @@ class GPT4oClient:
         The output should consist of two items: "description" and "lore"
         The "description" should be used to describe the fictional setting (1-2 paragraphs).
         The "lore" should be used to convey a mood, history or uniqueness to this site (1-2 paragraphs).
-        """.format(
+        '''.format(
             region['LocationName'],
             region['LocationType'],
             region['ShortDescription'],
@@ -135,7 +135,7 @@ class GPT4oClient:
     
     
     def generate_character(self, region, world_info='', style_input=''):
-        prompt = """
+        prompt = '''
         INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}.
         Region Short Description: {}
         World Info: {}
@@ -144,7 +144,7 @@ class GPT4oClient:
         The output should consist of two items: "description" and "personality"
         The "description" should be used to describe the visible appearance of this character (1-2 paragraphs).
         The "personality" should be used to convey the personality, world view, occupation and quirks of this character (1-2 paragraphs).
-        """.format(
+        '''.format(
             region['LocationName'],
             region['LocationType'],
             region['ShortDescription'],
@@ -167,11 +167,11 @@ class GPT4oClient:
         INSTRUCTIONS: Review all of the characteristics of the selected region and develop an interesting task, question or quest for the region.
         Please return a paragraph and be merely a prompt or suggestion used for direction.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
-        The output should consist of two objects: "title" and "description"
-        World Info: {}
-        Writing Style: {}
+        The output should consist of two objects: "title" and "description".
         This drama is occurring in {}, a {}. 
         Short description: {}\n
+        World Info: {}
+        Writing Style: {}
         """.format(
             region['LocationName'],
             region['LocationType'],
@@ -182,11 +182,11 @@ class GPT4oClient:
         
         prompt+="Characters:\n"
         for i in region['characters']:
-            prompt+=f" - {region['characters'][i]['description']}. {region['characters'][i]['description']}."
+            prompt+=f" - {region['characters'][i]['personality']}"
             
-        prompt+="Significant locationas:\n"
+        prompt+="Significant locations:\n"
         for i in region['locations']:
-            prompt+=f" - {region['locations'][i]['description']}. {region['locations'][i]['lore']}."
+            prompt+=f" - {region['locations'][i]['lore']}"
                  
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -199,7 +199,7 @@ class GPT4oClient:
         )
         return self._parse_json(response.choices[0].message.content)
     
-    def generate_random_encounter(self, world_info, region):
+    def generate_random_encounter(self, region, world_info):
         prompt = """
         INSTRUCTIONS: Review all of the characteristics of the selected region and create a short but interesting random encounter.
         Please return 1-2 paragraphs describing a detail description of the situation or opportunity. Some can be good, some situations can be bad.
@@ -207,7 +207,7 @@ class GPT4oClient:
         The output should consist of one object: "encounter"
         This drama is occurring in {}, a {}. 
         Short description: {}\n
-        World Info: 
+        World Info: {}
         """.format(
             region['LocationName'],
             region['LocationType'],
@@ -256,7 +256,23 @@ class GPT4oClient:
         # Return the relative path of the downloaded image
         return file_path
     
-    def generate_character_portrait(self, character_description, illustration_style='', image_storage='character_illustrations'):
+    def _shorten_prompt(self, input_prompt):
+        prompt = "Shorten this prompt to make it less than 500 words. Simplify or edit out details not necessary for an artistic rendering:\n"
+        prompt += input_prompt
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=self._create_messages(prompt),
+            max_tokens=1000,
+        )
+        return response.choices[0].message.content
+    
+    def _count_words_in_prompt(self, prompt_string):
+        # Split the prompt string by whitespace and filter out any empty strings
+        words = prompt_string.split()
+        # Return the number of words
+        return len(words)
+    
+    def generate_character_portrait(self, character_description, world_info, illustration_style='', image_storage='character_illustrations'):
         
         # Do not use promptless
         if not character_description:
@@ -265,8 +281,14 @@ class GPT4oClient:
         
         prompt = f"""
         Generate a character portrait based on the following description: {character_description}
+        The portrait should appear to be a detailed sketch from memory with touches of watercolor. No text in the image.
         Illustration style: {illustration_style}
-        """
+        """.strip(' \t\n\r')
+        
+        if self._count_words_in_prompt(prompt) >= 900:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
 
         try:
             response = openai.images.generate(
@@ -277,7 +299,7 @@ class GPT4oClient:
                 n=1
             )
         except openai.BadRequestError as e:
-            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}"
+            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}\n"
             logging.error(error_message)
             print("An error occurred while generating the image. Details have been logged.")
             return None
@@ -285,4 +307,37 @@ class GPT4oClient:
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
         
+    def generate_location_maps(self, location_description, world_info, illustration_style='', image_storage='location_maps'):
         
+        # Do not use promptless
+        if not location_description:
+            print("Warning: character_description cannot be empty. Operation aborted.")
+            return None
+        
+        prompt = f"""
+        Generate a stylized isometric map of this location following this description: {location_description}
+        This image should have the look of a drawing made from memory by an architect or cartographer. No text in the image.
+        Illustration style: {illustration_style}
+        """
+        
+        if self._count_words_in_prompt(prompt) >= 900:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
+        
+        try:
+            response = openai.images.generate(
+                model="dall-e-3", # temporary
+                prompt=prompt.strip(' \t\n\r'),
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+        except openai.BadRequestError as e:
+            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}\n"
+            logging.error(error_message)
+            print("An error occurred while generating the image. Details have been logged.")
+            return None
+        
+        # Get the generated image URL
+        return self._parse_url(response.data[0].url, image_storage)
