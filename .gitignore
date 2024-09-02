@@ -1,3 +1,5 @@
 .gpteng/
 __pycache__/
 json_outputs/
+players_info/*.txt
+test*.py

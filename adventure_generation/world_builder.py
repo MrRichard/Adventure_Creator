@@ -1,55 +1,62 @@
 import os
 import json
+import requests
 
 class WorldBuilder:
-    def __init__(self, context, world, gpt4o_client):
+    
+    def __init__(self, context, region, llm_client):
         self.context = context
-        
-        if isinstance(world, str):
-            self.world = json.loads(world)
-        elif isinstance(world, dict):
-            self.world = world
+        if isinstance(region, dict):
+            self.region = region
         else:
             raise ValueError("World must be either a dictionary or a JSON string.")
+        self.llm_client = llm_client
         
-        self.world = world
-        self.gpt4o_client = gpt4o_client
+    # This starts the region development chain. This looks like:
+    # 1. Describe the region in generalized detail
+    # 2. Create each new location and describe it in detail
+    # 3. Create each new character and describe them in detail
+    # 4. Create a custom encounter table of random events for this region
+    # 5. Create a minor side quest that connect characters and locations.
     
-    # define a prompt for each region
-    def build_world(self):
-        prompt = self.context
-        for region in self.world['locations']:
-            print(f" > Creating the {region['LocationName']} region.")
-            prompt += f"\n\nLocation Name: {region['LocationName']}\nLocation Type: {region['LocationType']}\nShort Description: {region['ShortDescription']}\n"
-            
-            # Request new copy
-            json_output # humor me and ensure it's clear
-            json_output=self._build_world(prompt)
-            
-            # Try to load copy. Error if incomplete or error'd json.
-            try:
-                region_description = json.loads(json_output)
-            except json.decoder.JSONDecodeError as e:
-                print(f"Failed to decode JSON for region: {region['LocationName']}. Error: {e}")
-                error_filename = f"{region['LocationName']}_error.txt"
-                error_filepath = os.path.join('json_outputs', error_filename)
-                with open(error_filepath, 'w') as error_file:
-                    error_file.write(prompt)
-                    error_file.write(json_output)
-            
-            region.update(region_description)
+    # 
+    def region_development_chain(self):
         
-        self._save_as_json()
-        return self.world
-            
-    def _build_world(self, prompt):
-        # Use GPT-4o to build a detailed world description
-        world_description = self.gpt4o_client.generate_region_description(prompt)
-        return world_description
-    
-    def _save_as_json(self): 
-        filename = 'expanded_world.json'
-        output_path = os.path.join('json_outputs', filename)
+        # Step 1 - Run Create Region Description
+        print(f"{self.region['LocationName']} - Creating a regional description")
+        regional_description = self.llm_client.generate_detailed_region_description(self.region)
+        self.region.update(regional_description)
         
-        with open(output_path, 'w') as json_file:
-            json.dump(self.world, json_file)
+        # Step 2 - Create the locationss
+        created_locations = {}
+        print(f"{self.region['LocationName']} needs {self.region['num_locations']} locations")
+        for i in range(self.region['num_locations']):
+            loc=self.llm_client.generate_location(self.region)
+            created_locations[i] = loc
+        self.region['locations'] = created_locations
+            
+        # Step 3 - Create the characters
+        created_characters = {}
+        print(f"{self.region['LocationName']} needs {self.region['num_characters']} characters")
+        for i in range(self.region['num_characters']):
+            char=self.llm_client.generate_character(self.region)
+            created_characters[i] = char
+        self.region['characters'] = created_characters
+        
+        # Step 4 - Create a custom encounter table based on a d10
+        print(f"{self.region['LocationName']} - Quest or plot prompts")
+        created_quests = {}
+        for i in range(self.region['num_characters']):
+            quest=self.llm_client.generate_regional_drama(self.region)
+            created_quests[i] = quest
+        self.region['quests'] =  created_quests
+        
+        # Step 5  - Create a random encounter table
+        print(f"{self.region['LocationName']} - generating a random encounter table")
+        created_encounters = {}
+        for i in range(1, 11):
+            encounter=self.llm_client.generate_random_encounter(self.region)
+            created_encounters[i] = encounter
+        self.region['random_encounter_table'] =  created_encounters
+                
+        return self.region
