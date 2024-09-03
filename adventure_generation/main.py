@@ -104,7 +104,7 @@ def main(prompt_file, map_image, settings):
         region_queue.put(region)
 
     threads = []
-    max_threads = 3
+    max_threads = 2
     
     # We are giving the worker the context_extractor object, along with our chosen llm model
     # TODO: review how the LLM logic is used. We might only need to do this once.

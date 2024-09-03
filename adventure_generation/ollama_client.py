@@ -1,11 +1,13 @@
 import os
 from ollama import Client
 
+# TODO: This file needs some massive refactoring. Don't use this! Yet. 
+
 class ollamaClient:
     def __init__(self):
         
-        
-        self.client = Client(host="http://192.168.1.115:11434")
+        # TODO: put the ollama server into another folder. 
+        self.client = Client(host="http://192.168.1.115:11434") # This is my home ollama server IP address. Don't get wierd on this. 
         self.system_role = "You are a ttrpg game world creator and game designer assistant. You help build the setting for amazing adventures."
 
     

@@ -5,11 +5,14 @@ import requests
 import string
 import random
 
+# To prevent rate limit issues
+import time
+
+# Add logging to help track prompt issues
 import logging
-from datetime import datetime
 
 # Configure logging
-logging.basicConfig(filename='rendering_errors.log', level=logging.ERROR, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='rendering_errors.log', level=logging.NOTSET, format='%(asctime)s - %(message)s')
 
 class GPT4oClient:
     def __init__(self):
@@ -25,14 +28,24 @@ class GPT4oClient:
 
     def _create_messages(self, prompt):
         msgs=[self.system_role_msg, {"role": "user", "content": [{"type": "text","text": f"{prompt}"}]}]
+        
+        # Logging prompt
+        log_msg=f"Logging Prompt:\n ${prompt}"
+        logging.debug(log_msg)
+        
         return msgs
     
     def _parse_json(self, json_inputs):
         try:
             dict_output = json.loads(json_inputs)
         except json.decoder.JSONDecodeError as e:
-            print(f"Failed to decode JSON. Error: {e}")
-            return ''
+            logging.warn(f"Failed to decode JSON. Error: {e}")
+            abbreviated_json = self._shorten_response(json_inputs)
+            dict_output = json.loads(abbreviated_json)
+            
+        # Let's add a delay to stop hitting ratelimits
+        time.sleep(15)
+            
         return dict_output
 
     # this is the step 1 map review    
@@ -151,6 +164,12 @@ class GPT4oClient:
             world_info,
             style_input
         )
+        
+        if self._count_words_in_prompt(prompt) >= 1000:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
+            
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -182,11 +201,18 @@ class GPT4oClient:
         
         prompt+="Characters:\n"
         for i in region['characters']:
-            prompt+=f" - {region['characters'][i]['personality']}"
+            if 'personality' in region['characters'][i]:
+                prompt += f" - {region['characters'][i]['personality']}"
             
         prompt+="Significant locations:\n"
         for i in region['locations']:
-            prompt+=f" - {region['locations'][i]['lore']}"
+            if 'lore' in region['locations'][i]:
+                prompt+=f" - {region['locations'][i]['lore']}"
+                
+        if self._count_words_in_prompt(prompt) >= 1000:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
                  
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -266,6 +292,19 @@ class GPT4oClient:
         )
         return response.choices[0].message.content
     
+    def _shorten_response(self, input_response):
+        prompt = "This data is too long and not in properly formatted. Please make the content shorter and format in proper JSON. Input to be revised: \n"
+        prompt += input_response
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=self._create_messages(prompt),
+            max_tokens=1000,
+            response_format={
+                "type": "json_object"
+            }
+        )
+        return response.choices[0].message.content
+    
     def _count_words_in_prompt(self, prompt_string):
         # Split the prompt string by whitespace and filter out any empty strings
         words = prompt_string.split()
@@ -280,7 +319,7 @@ class GPT4oClient:
             return None
         
         prompt = f"""
-        Generate a character portrait based on the following description: {character_description}
+        Generate a portrait based on the following description: {character_description}
         The portrait should appear to be a detailed sketch from memory with touches of watercolor. No text in the image.
         Illustration style: {illustration_style}
         """.strip(' \t\n\r')
@@ -303,6 +342,10 @@ class GPT4oClient:
             logging.error(error_message)
             print("An error occurred while generating the image. Details have been logged.")
             return None
+        
+        # Logging prompt
+        log_msg=f"Logging Prompt:\n ${prompt}"
+        logging.debug(log_msg)
         
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
@@ -336,8 +379,12 @@ class GPT4oClient:
         except openai.BadRequestError as e:
             error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}\n"
             logging.error(error_message)
-            print("An error occurred while generating the image. Details have been logged.")
+            print(" - An error occurred while generating the image. Details have been logged.")
             return None
+        
+        # Logging prompt
+        log_msg=f"Logging Prompt:\n ${prompt}"
+        logging.debug(log_msg)
         
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
