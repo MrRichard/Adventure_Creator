@@ -40,7 +40,8 @@ class WorldBuilder:
                 self.context_extractor.get_context(),
                 self.context_extractor.get_writing_style()
             )
-            created_locations[i] = loc
+            location_name=loc['name']
+            created_locations[location_name] = loc
         self.region['locations'] = created_locations
             
         # Step 3 - Create the characters
@@ -52,7 +53,8 @@ class WorldBuilder:
                 self.context_extractor.get_context(),
                 self.context_extractor.get_writing_style()
             )
-            created_characters[i] = char
+            character_name=char['name']
+            created_characters[character_name] = char
         self.region['characters'] = created_characters
         
         # Step 4 - Create a custom encounter table based on a d10
@@ -78,22 +80,22 @@ class WorldBuilder:
         
         # Step 6 - Create character portraits
         print(f"{self.region['LocationName']} - Generating character portraits")
-        for i in range(self.region['num_characters']):
+        for character in self.region['characters']:
             portrait_file=self.llm_client.generate_character_portrait(
-                character_description = self.region['characters'][i]['description'],
+                character_description = self.region['characters'][character]['description'],
                 world_info=self.context_extractor.get_context(),
                 illustration_style=self.context_extractor.get_visual_style()
             )
-            self.region['characters'][i]['portrait'] =  portrait_file
+            self.region['characters'][character]['portrait'] =  portrait_file
             
         # Step 7 - Create location maps 
         print(f"{self.region['LocationName']} - Generating location maps")
-        for i in range(self.region['num_locations']):
+        for loc in self.region['locations']:
             location_map=self.llm_client.generate_location_maps(
-                location_description = self.region['locations'][i]['description'],
+                location_description = self.region['locations'][loc]['description'],
                 world_info=self.context_extractor.get_context(),
                 illustration_style=self.context_extractor.get_visual_style()
             )
-            self.region['locations'][i]['illustration'] =  portrait_file
+            self.region['locations'][loc]['illustration'] =  location_map
         
         return self.region

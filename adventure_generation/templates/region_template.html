@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ region.LocationName }}</title>
+    <link rel="stylesheet" href="../story_styling/styles.css">
+</head>
+``` 
+
+Make sure to replace `"path/to/your/styles.css"` with the actual path to your CSS file.
+<body>
+    <h1>Chapter: {{ region.LocationName }}</h1>
+  
+    <section>
+        <h2>Region Details</h2>
+        <p>{{ region.regionDetails.description }}</p>
+        <p>{{ region.regionDetails.lore }}</p>
+    </section>
+  
+    {% if region.locations %}
+    <section>
+        <h2>Locations</h2>
+        {% for loc in region.locations.values() %}
+        <div>
+            <h3>Location</h3>
+            <img src="../{{ loc.illustration }}" alt="Location Image">
+            <p>{{ loc.description }}</p>
+            <p>{{ loc.lore }}</p>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+  
+    {% if region.characters %}
+    <section>
+        <h2>Characters</h2>
+        {% for char in region.characters.values() %}
+        <div>
+            <h3>Character</h3>
+            <img src="../{{ char.portrait }}" alt="Character Portrait">
+            <p>{{ char.description }}</p>
+            <p>{{ char.personality }}</p>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+  
+    <section>
+        <h2>Random Encounters</h2>
+        <table border="1">
+            <tr>
+                <th>Number</th>
+                <th>Description</th>
+            </tr>
+            {% for num, encounter in region.random_encounter_table.items() %}
+            <tr>
+                <td>{{ num }}</td>
+                <td>{{ encounter.encounter.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </section>
+  
+    <section>
+        <h2>Quests</h2>
+        <table border="1">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+            </tr>
+            {% for quest in region.quests.values() %}
+            <tr>
+                <td>{{ quest.title }}</td>
+                <td>{{ quest.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </section>
+
+</body>
+</html>

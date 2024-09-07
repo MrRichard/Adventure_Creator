@@ -65,7 +65,7 @@ class GPT4oClient:
                     For each item create a json object with this information:\n- LocationName, LocationType, ShortDescription\n\n* 
                     The LocationType should be one of these items [ bigTown, smallTown, NaturalFeature, other ]. 
                     The shortDescription should be minimal. One to two lines at most.
-                    Example formatting: {"regions": [{"LocationName": "","LocationType": "","ShortDescription": ""},{"LocationName": "","LocationType": "","ShortDescription": ""}]}
+                    Example formatting: {\"regions\": [{\"LocationName\": \"\",\"LocationType\": \"\",\"ShortDescription\": \"\"},{\"LocationName\": \"\",\"LocationType\": \"\",\"ShortDescription\": \"\"}]}
                     """
                     },
                     {
@@ -87,7 +87,7 @@ class GPT4oClient:
         if region =='':
             return {}
         
-        prompt = '''
+        prompt = """
         INSTRUCTIONS: Expand upon the simple description for this region:
         Region Name: {} - a {}.
         Region Short Description: {}
@@ -95,16 +95,15 @@ class GPT4oClient:
         Writing Style: {}
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
         This content should be in the "regionDetails" object. Use this template:
-        
-        The "description" should be used to describe the fictional setting (1-2 paragraphs).
-        The "lore" should be used to convey a mood, history or uniqueness to this region (1-2 paragraphs).
-        '''.format(
+        Example JSON: 
+        """.format(
             region['LocationName'],
             region['LocationType'],
             region['ShortDescription'],
             world_info,
             style_input
         )
+        prompt+="{\'description\' : \'An example descriptive paragraph\',\'lore\' : \'Example history, mood or lore of this region in one paragraph\'}"
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -118,23 +117,22 @@ class GPT4oClient:
         
     
     def generate_location(self, region, world_info='', style_input=''):
-        prompt = '''
+        prompt = """
         INSTRUCTIONS: Create a fictional signficant locations for the location of {}, a {}.
         Region Short Description: {}
         World Info: {}
         Writing Style: {}
         Write a brief but creative description of the physical description and appearance of a place.
-        Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
-        The output should consist of two items: "description" and "lore"
-        The "description" should be used to describe the fictional setting (1-2 paragraphs).
-        The "lore" should be used to convey a mood, history or uniqueness to this site (1-2 paragraphs).
-        '''.format(
-            region['LocationName'],
-            region['LocationType'],
-            region['ShortDescription'],
-            world_info,
-            style_input
+        Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
+        Example JSON:
+        """.format(region['LocationName'], 
+                   region['LocationType'],
+                   region['ShortDescription'],
+                   world_info,
+                   style_input
         )
+        
+        prompt += "{\'name\' : \'location name\', \'description\' : \'An example descriptive paragraph\', \'lore\' : \'Example history, mood or lore of this region in one paragraph\' }"
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -154,9 +152,8 @@ class GPT4oClient:
         World Info: {}
         Writing Style: {}
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
-        The output should consist of two items: "description" and "personality"
-        The "description" should be used to describe the visible appearance of this character (1-2 paragraphs).
-        The "personality" should be used to convey the personality, world view, occupation and quirks of this character (1-2 paragraphs).
+        The output should consist of three items: "name", "description" and "personality"
+        Example JSON: 
         '''.format(
             region['LocationName'],
             region['LocationType'],
@@ -164,6 +161,7 @@ class GPT4oClient:
             world_info,
             style_input
         )
+        prompt+="{\'name\' : \'Character name\',\'description\' : \'describe the visible appearance of this character in one paragraph\', \'personality\' : \'convey the personality, world view, occupation and quirks of this character in one paragraph\'}"
         
         if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
@@ -191,6 +189,7 @@ class GPT4oClient:
         Short description: {}\n
         World Info: {}
         Writing Style: {}
+        Example JSON:
         """.format(
             region['LocationName'],
             region['LocationType'],
@@ -198,6 +197,7 @@ class GPT4oClient:
             world_info,
             style_input
         )
+        prompt += "{\'description\' : \'describe the visible appearance of this character in one paragraph\',\'personality\' : \'an interesting situation or challenge\'}"
         
         prompt+="Characters:\n"
         for i in region['characters']:
@@ -241,13 +241,18 @@ class GPT4oClient:
             world_info
         )
         
-        prompt+="Characters:\n"
-        for i in region['characters']:
-            prompt+=f" - {region['characters'][i]['description']}. {region['characters'][i]['description']}."
+        prompt += "Characters:\n"
+        for character in region['characters']:
+            if 'description' in character and 'personality' in character:
+                prompt += f" - {character['description']}. {character['personality']}."
+            else:
+                logging.warn("missing important character elements")
             
-        prompt+="Significant locationas:\n"
-        for i in region['locations']:
-            prompt+=f" - {region['locations'][i]['description']}. {region['locations'][i]['lore']}."
+        prompt += "Significant locations:\n"
+        for location in region['locations']:
+            if 'description' in location and 'lore' in location:
+                prompt += f" - {location['description']}. {location['lore']}."
+                logging.warn("missing important location  elements")
                  
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -283,7 +288,7 @@ class GPT4oClient:
         return file_path
     
     def _shorten_prompt(self, input_prompt):
-        prompt = "Shorten this prompt to make it less than 500 words. Simplify or edit out details not necessary for an artistic rendering:\n"
+        prompt = "Shorten this prompt to make it less than 800 words. Summarize stories to single sentences or cut details not necessary for an artistic rendering:\n"
         prompt += input_prompt
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -293,7 +298,7 @@ class GPT4oClient:
         return response.choices[0].message.content
     
     def _shorten_response(self, input_response):
-        prompt = "This data is too long and not in properly formatted. Please make the content shorter and format in proper JSON. Input to be revised: \n"
+        prompt = "This json data is too long and not in properly formatted. Please make the content shorter and format in proper JSON. Input to be revised: \n"
         prompt += input_response
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -319,7 +324,7 @@ class GPT4oClient:
             return None
         
         prompt = f"""
-        Generate a portrait based on the following description: {character_description}
+        Generate this person's portrait based on the following description: {character_description}
         The portrait should appear to be a detailed sketch from memory with touches of watercolor. No text in the image.
         Illustration style: {illustration_style}
         """.strip(' \t\n\r')
@@ -343,10 +348,6 @@ class GPT4oClient:
             print("An error occurred while generating the image. Details have been logged.")
             return None
         
-        # Logging prompt
-        log_msg=f"Logging Prompt:\n ${prompt}"
-        logging.debug(log_msg)
-        
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
         
@@ -358,7 +359,7 @@ class GPT4oClient:
             return None
         
         prompt = f"""
-        Generate a stylized isometric map of this location following this description: {location_description}
+        Draw a stylized isometric map of this place: {location_description}
         This image should have the look of a drawing made from memory by an architect or cartographer. No text in the image.
         Illustration style: {illustration_style}
         """
