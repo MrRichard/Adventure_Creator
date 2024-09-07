@@ -147,7 +147,7 @@ class GPT4oClient:
     
     def generate_character(self, region, world_info='', style_input=''):
         prompt = '''
-        INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}.
+        INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}. This person should randomly be either gender, any race allowed in the World Info, any age between 10 and 100, and randomly between 1-10 in attractiveness with most people being a 6. 
         Region Short Description: {}
         World Info: {}
         Writing Style: {}
