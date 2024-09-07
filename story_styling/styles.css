@@ -1,0 +1,89 @@
+/* styles.css */
+
+/* Reset some default browser styles */
+body, h1, h2, h3, p, table {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* Centering the main heading and making it prominent */
+h1 {
+    text-align: center;
+    font-size: 2.5em; /* Bigger font for chapter title */
+    margin-bottom: 20px;
+}
+
+/* Styling region details to be centered */
+h2 {
+    text-align: center;
+    color: #4CAF50; /* Greenish color for chapter headings */
+    margin-top: 20px;
+}
+
+/* Section styling */
+section {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+/* Image styling */
+img {
+    max-width: 500px; /* Fixed width for images */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 5px; /* Slight rounding to corners */
+}
+
+/* Float images left or right */
+.image-left {
+    float: left; /* Align to the left */
+    margin-right: 15px; /* Space between image and text */
+}
+
+.image-right {
+    float: right; /* Align to the right */
+    margin-left: 15px; /* Space between image and text */
+}
+
+/* Clear floats after each section */
+div {
+    overflow: auto; /* Clear floats */
+    margin-bottom: 20px; /* Space between entries */
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd; /* Add borders to the table */
+}
+
+th {
+    background-color: #4CAF50; /* Greenish background for headers */
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2; /* Zebra striping effect */
+}
+
+tr:hover {
+    background-color: #ddd; /* Highlight row on hover */
+}

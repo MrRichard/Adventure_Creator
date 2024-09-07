@@ -78,7 +78,7 @@ def world_builder_runner(context_extractor, world, llms):
         region_queue.put(region)
 
     threads = []
-    max_threads = 2
+    max_threads = 3
     
     # We are giving the worker the context_extractor object, along with our chosen llm model
     # TODO: review how the LLM logic is used. We might only need to do this once.

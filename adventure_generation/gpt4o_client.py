@@ -12,7 +12,7 @@ import time
 import logging
 
 # Configure logging
-logging.basicConfig(filename='rendering_errors.log', level=logging.NOTSET, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='GPT_usage.log', level=logging.NOTSET, format='%(asctime)s - %(message)s')
 
 class GPT4oClient:
     def __init__(self):
@@ -310,6 +310,16 @@ class GPT4oClient:
         )
         return response.choices[0].message.content
     
+    def _optimize_dalle_prompt(self, input_prompt):
+        prompt = "Optimize the prompt below for DALL-E 3. Include wording to avoid using written text UNLESS it is the name of the location or person.\n"
+        prompt += input_prompt
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=self._create_messages(prompt),
+            max_tokens=1000,
+        )
+        return response.choices[0].message.content
+    
     def _count_words_in_prompt(self, prompt_string):
         # Split the prompt string by whitespace and filter out any empty strings
         words = prompt_string.split()
@@ -329,11 +339,7 @@ class GPT4oClient:
         Illustration style: {illustration_style}
         """.strip(' \t\n\r')
         
-        if self._count_words_in_prompt(prompt) >= 900:
-            print(" - Shortening prompt")
-            prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
-
+        prompt = self._optimize_dalle_prompt(prompt)
         try:
             response = openai.images.generate(
                 model="dall-e-3",
@@ -364,10 +370,7 @@ class GPT4oClient:
         Illustration style: {illustration_style}
         """
         
-        if self._count_words_in_prompt(prompt) >= 900:
-            print(" - Shortening prompt")
-            prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+        prompt = self._optimize_dalle_prompt(prompt)
         
         try:
             response = openai.images.generate(
