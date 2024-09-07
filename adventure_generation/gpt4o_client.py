@@ -12,7 +12,7 @@ import time
 import logging
 
 # Configure logging
-logging.basicConfig(filename='GPT_usage.log', level=logging.NOTSET, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='llm_usage.log', level=logging.NOTSET, format='%(asctime)s - %(message)s')
 
 class GPT4oClient:
     def __init__(self):
@@ -25,6 +25,8 @@ class GPT4oClient:
         """
         self.system_role_msg = {"role": "system","content": [{"type": "text","text": f"{self.system_role}"}]}
         self.image_storage = "images"
+        
+        logging.info("OpenAI Client initiated")
 
     def _create_messages(self, prompt):
         msgs=[self.system_role_msg, {"role": "user", "content": [{"type": "text","text": f"{prompt}"}]}]
@@ -36,7 +38,7 @@ class GPT4oClient:
             dict_output = json.loads(json_inputs)
         except json.decoder.JSONDecodeError as e:
             logging.warn(f"Failed to decode JSON. Error: {e}")
-            abbreviated_json = self._shorten_response(json_inputs)
+            abbreviated_json = self._fix_json_response(json_inputs)
             dict_output = json.loads(abbreviated_json)
             
         # Let's add a delay to stop hitting ratelimits
@@ -270,6 +272,7 @@ class GPT4oClient:
         for location in region['locations']:
             if 'description' in location and 'lore' in location:
                 prompt += f" - {location['description']}. {location['lore']}."
+            else:
                 logging.warn("missing important location  elements")
                 
         if self._count_words_in_prompt(prompt) >= 1000:
@@ -346,7 +349,7 @@ class GPT4oClient:
         logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return output_content
     
-    def _shorten_response(self, input_response):
+    def _fix_json_response(self, input_response):
         prompt = "This json data is too long and not in properly formatted. Please make the content shorter and format in proper JSON. Input to be revised: \n"
         prompt += input_response
         response = openai.chat.completions.create(

@@ -8,11 +8,12 @@ from adventure_generation.context_extractor import ContextExtractor #
 from adventure_generation.world_builder import WorldBuilder # does all the work
 from adventure_generation.gpt4o_client import GPT4oClient # for money runs
 from adventure_generation.ollama_client import ollamaClient # for local runs
+#from adventure_generation.ollama_openai_client import ollamaClient # uses openai compatiblity.
 
 # By default, I want to use GPT as little as possible despite gpt4o-mini being 
 # extremely affordable. While testing, I will use ollama when possible.
 global USING_MONEY
-USING_MONEY = True
+USING_MONEY = False
 
 def world_builder_task(context, region, llm_client, output_queue):
     # This starts the region development chain. This looks like:
@@ -149,7 +150,6 @@ def main(prompt_file, map_image, settings):
         # This is so cool
         world = map_analyzer.identify_regions()
 
-    # TODO: This probably needs to compartmentalized
     # But basically, load the old world file, or createa  new one. 
     expanded_world_json_path = 'json_outputs/expanded_world.json'
     if os.path.exists(expanded_world_json_path):

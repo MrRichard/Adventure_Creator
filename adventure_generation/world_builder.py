@@ -47,7 +47,12 @@ class WorldBuilder:
                 self.optimized_context,
                 self.optimized_style
             )
-            location_name=loc['name']
+
+            if 'name' not in loc:
+                loc['name'] = f"Location #{i+1}"
+                #loc=self.llm_client._fix_json_response(loc)
+                
+            location_name = loc['name'] if 'name' in loc else None
             created_locations[location_name] = loc
         self.region['locations'] = created_locations
             
@@ -60,6 +65,10 @@ class WorldBuilder:
                 self.optimized_context,
                 self.optimized_style
             )
+            if 'name' not in char:
+                char['name'] = f"Character #{i+1}"
+                #char=self.llm_client._fix_json_response(char)
+                
             character_name=char['name']
             created_characters[character_name] = char
         self.region['characters'] = created_characters
@@ -86,24 +95,24 @@ class WorldBuilder:
             created_encounters[i] = encounter
         self.region['random_encounter_table'] =  created_encounters
         
-        # Step 6 - Create character portraits
-        print(f"{self.region['LocationName']} - Generating character portraits")
-        for character in self.region['characters']:
-            portrait_file=self.llm_client.generate_character_portrait(
-                character_description = self.region['characters'][character]['description'],
-                world_info=self.optimized_context,
-                illustration_style=self.optimized_style
-            )
-            self.region['characters'][character]['portrait'] =  portrait_file
+        # # Step 6 - Create character portraits
+        # print(f"{self.region['LocationName']} - Generating character portraits")
+        # for character in self.region['characters']:
+        #     portrait_file=self.llm_client.generate_character_portrait(
+        #         character_description = self.region['characters'][character]['description'],
+        #         world_info=self.optimized_context,
+        #         illustration_style=self.optimized_style
+        #     )
+        #     self.region['characters'][character]['portrait'] =  portrait_file
             
-        # Step 7 - Create location maps 
-        print(f"{self.region['LocationName']} - Generating location maps")
-        for loc in self.region['locations']:
-            location_map=self.llm_client.generate_location_maps(
-                location_description = self.region['locations'][loc]['description'],
-                world_info=self.optimized_context,
-                illustration_style=self.optimized_style
-            )
-            self.region['locations'][loc]['illustration'] =  location_map
+        # # Step 7 - Create location maps 
+        # print(f"{self.region['LocationName']} - Generating location maps")
+        # for loc in self.region['locations']:
+        #     location_map=self.llm_client.generate_location_maps(
+        #         location_description = self.region['locations'][loc]['description'],
+        #         world_info=self.optimized_context,
+        #         illustration_style=self.optimized_style
+        #     )
+        #     self.region['locations'][loc]['illustration'] =  location_map
         
         return self.region

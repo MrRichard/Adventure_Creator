@@ -1,5 +1,5 @@
 import os
-from ollama import Client
+from openai import OpenAI
 import json
 import requests
 import string
@@ -18,25 +18,25 @@ class ollamaClient:
     
     def __init__(self):
         self.api_key = "ollama"
-        self.base_url="http://192.168.1.115:11434"
+        self.base_url="http://192.168.1.115:11434/v1"
         
-        self.client = Client(host=self.base_url)
+        self.client = OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key
+        )
         
-        logging.info("Ollama NATIVE Client initiated")
+        logging.info("Ollama Client initiated")
 
         self.system_role = """
         You are a ttrpg game world creator and game designer assistant. 
         You help build the setting for amazing adventures and weave a story with opportunity for interaction.
         You want to avoid fantasy tropes and commonly used language.
         """
-        self.system_role_msg = {"role": "system","content": f"{self.system_role}"}
+        self.system_role_msg = {"role": "system","content": [{"type": "text","text": f"{self.system_role}"}]}
         self.image_storage = "images"
 
     def _create_messages(self, prompt):
-        msgs=[
-            self.system_role_msg, 
-            {"role": "user", "content": f"{prompt}"}
-        ]
+        msgs=[self.system_role_msg, {"role": "user", "content": [{"type": "text","text": f"{prompt}"}]}]
             
         return msgs
     
@@ -77,20 +77,23 @@ class ollamaClient:
         )
         prompt+="{\'description\' : \'An example descriptive paragraph\',\'lore\' : \'Example history, mood or lore of this region in one paragraph\'}"
         
-        if self._count_words_in_prompt(prompt) >= 3000:
+        if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
         
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        logging.debug(self._create_messages(prompt))
         
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            temperature=1.1,
+            response_format={
+                "type": "json_object"
+            }
         )
-        return self._parse_json(response['message']['content'])
+        return self._parse_json(response.choices[0].message.content)
         
     
     def generate_location(self, region, world_info='', style_input=''):
@@ -111,18 +114,22 @@ class ollamaClient:
         
         prompt += "{\'name\' : \'location name\', \'description\' : \'An example descriptive paragraph\', \'lore\' : \'Example history, mood or lore of this region in one paragraph\' }"
         
-        if self._count_words_in_prompt(prompt) >= 3000:
+        if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
         
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            temperature=1.1,
+            response_format={
+                "type": "json_object"
+            }
         )
-        return self._parse_json(response['message']['content'])
+        return self._parse_json(response.choices[0].message.content)
     
     
     def generate_character(self, region, world_info='', style_input=''):
@@ -143,18 +150,22 @@ class ollamaClient:
         )
         prompt+="{\'name\' : \'Character name\',\'description\' : \'describe the visible appearance of this character in one paragraph\', \'personality\' : \'convey the personality, world view, occupation and quirks of this character in one paragraph\'}"
         
-        if self._count_words_in_prompt(prompt) >= 3000:
+        if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
         
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            temperature=1.1,
+            response_format={
+                "type": "json_object"
+            }
         )
-        return self._parse_json(response['message']['content'])
+        return self._parse_json(response.choices[0].message.content)
     
     def generate_regional_drama(self, region, world_info='', style_input=''):
         prompt = """
@@ -186,18 +197,22 @@ class ollamaClient:
             if 'lore' in region['locations'][i]:
                 prompt+=f" - {region['locations'][i]['lore']}"
     
-        if self._count_words_in_prompt(prompt) >= 3000:
+        if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
         
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")         
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            temperature=1.1,
+            response_format={
+                "type": "json_object"
+            }
         )
-        return self._parse_json(response['message']['content'])
+        return self._parse_json(response.choices[0].message.content)
     
     def generate_random_encounter(self, region, world_info):
         prompt = """
@@ -228,21 +243,24 @@ class ollamaClient:
         for location in region['locations']:
             if 'description' in location and 'lore' in location:
                 prompt += f" - {location['description']}. {location['lore']}."
-            else:
                 logging.warn("missing important location  elements")
                 
-        if self._count_words_in_prompt(prompt) >= 3000:
+        if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
         
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")         
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            temperature=1.1,
+            response_format={
+                "type": "json_object"
+            }
         )
-        return self._parse_json(response['message']['content'])
+        return self._parse_json(response.choices[0].message.content)
     
     def _parse_url(self, image_url, image_storage):
         # Am I overwriting the basic image storage, probably.
@@ -268,15 +286,16 @@ class ollamaClient:
     
     def _summarize_context(self, input_prompt):
         prompt = "Please summarize the user's input text into a shortened and organized format optimized for use later as context for language models:\n"
-        prompt += input_prompt 
-        response = self.client.chat(
+        prompt += input_prompt
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
+            max_tokens=2500,
         )
         time.sleep(1)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        #logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
-        return response['message']['content'] 
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
+        return response.choices[0].message.content
     
     def _shorten_prompt(self, input_prompt):
         prompt = """
@@ -285,46 +304,114 @@ class ollamaClient:
         If JSON output is requested, please be sure that JSON output is specificed in the prompt. 
         Summarize stories to single sentences or cut unneeded details:\n"""
         prompt += input_prompt
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
             messages=self._create_messages(prompt),
+            max_tokens=2500,
         )
-        output_content = response['message']['content']
-        if 'JSON' not in response['message']['content']:
-            output_content=response['message']['content']
+        output_content = response.choices[0].message.content
+        if 'JSON' not in response.choices[0].message.content:
+            output_content=response.choices[0].message.content
             output_content += "\nReturn this information in JSON format." 
         
         time.sleep(1)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return output_content
     
     def _fix_json_response(self, input_response):
         prompt = "This json data is not in properly formatted. Please format output in proper JSON. Input to be revised: \n"
         prompt += input_response
-        response = self.client.chat(
-            model="llama3.1", # this might be sketchy. 
+        response = self.client.chat.completions.create(
+            model="llama3.1",
             messages=self._create_messages(prompt),
-            format = 'json'
+            max_tokens=2500,
+            response_format={
+                "type": "json_object"
+            }    
         )
         time.sleep(1)
         logging.warn(" --- Incomplete JSON data fix attempted.")
-        return response['message']['content']
+        return response.choices[0].message.content
     
     def _optimize_dalle_prompt(self, input_prompt):
         prompt = "Optimize the prompt below for DALL-E 3. Include wording to avoid using written text UNLESS it is the name of the location or person.\n"
         prompt += input_prompt
-        response = self.client.chat(
+        response = self.client.chat.completions.create(
             model="llama3.1",
-            messages=self._create_messages(prompt)
+            messages=self._create_messages(prompt),
+            max_tokens=2500,
         )
         time.sleep(1)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
-        return response['message']['content']
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
+        return response.choices[0].message.content
     
     def _count_words_in_prompt(self, prompt_string):
         # Split the prompt string by whitespace and filter out any empty strings
         words = prompt_string.split()
         # Return the number of words
         return len(words)
+    
+    def generate_character_portrait(self, character_description, world_info, illustration_style='', image_storage='character_illustrations'):
+        
+        # Do not use promptless
+        if not character_description:
+            print("Warning: character_description cannot be empty. Operation aborted.")
+            return None
+        
+        prompt = f"""
+        Generate this person's portrait based on the following description: {character_description}
+        Illustration style: {illustration_style}
+        """.strip(' \t\n\r')
+        
+        prompt = self._optimize_dalle_prompt(prompt)
+        logging.debug(f"<< INPUT TO DALLE:\n{prompt}\n")
+        try:
+            response = self.client.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+        except self.client.BadRequestError as e:
+            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}\n"
+            logging.error(error_message)
+            print("An error occurred while generating the image. Details have been logged.")
+            return None
+        
+        # Get the generated image URL
+        return self._parse_url(response.data[0].url, image_storage)
+        
+    def generate_location_maps(self, location_description, world_info, illustration_style='', image_storage='location_maps'):
+        
+        # Do not use promptless
+        if not location_description:
+            print("Warning: character_description cannot be empty. Operation aborted.")
+            return None
+        
+        prompt = f"""
+        Draw a stylized isometric map of this place: {location_description}
+        Illustration style: {illustration_style}
+        """
+        
+        prompt = self._optimize_dalle_prompt(prompt)
+        logging.debug(f"<< INPUT TO DALLE:\n{prompt}\n")
+        try:
+            response = self.client.images.generate(
+                model="dall-e-3", # temporary
+                prompt=prompt.strip(' \t\n\r'),
+                size="1024x1024",
+                quality="standard",
+                n=1
+            )
+        except self.client.BadRequestError as e:
+            error_message = f"BadRequestError: {str(e)}\nPrompt: {prompt}\n"
+            logging.error(error_message)
+            print(" - An error occurred while generating the image. Details have been logged.")
+            return None
+        
+        # Get the generated image URL
+        return self._parse_url(response.data[0].url, image_storage)
+    

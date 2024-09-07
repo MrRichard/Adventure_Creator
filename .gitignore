@@ -3,5 +3,7 @@ __pycache__/
 json_outputs/
 players_info/*.txt
 test*.py
-location_maps/*.jpg
-character_illustrations/*.jpg
+location_maps/
+character_illustrations
+story_output
+*.log
