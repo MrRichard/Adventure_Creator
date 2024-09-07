@@ -42,6 +42,44 @@
     </section>
     {% endif %}
 
+    {% if region.random_encounter_table %}
     <section>
         <h2>Random Encounters</h2>
-        <table
+        <table>
+            <tr>
+                <th>Encounter Number</th>
+                <th>Description</th>
+                <th>Opportunities</th>
+            </tr>
+            {% for encounter in region.random_encounter_table.values() %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ encounter.encounter.description }}</td>
+                <td>{% if encounter.encounter.opportunity %}{{ encounter.encounter.opportunity }}{% else %}None{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </section>
+    {% endif %}
+
+    {% if region.quests %}
+    <section>
+        <h2>Quests</h2>
+        <table>
+            <tr>
+                <th>Quest Title</th>
+                <th>Description</th>
+            </tr>
+            {% for quest in region.quests.values() %}
+            <tr>
+                <td>{{ quest.title }}</td>
+                <td>{{ quest.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </section>
+    {% endif %}
+    
+</body>
+</html>
+

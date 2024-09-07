@@ -20,7 +20,7 @@ class GPT4oClient:
         openai.api_key = self.api_key
         self.system_role = """
         You are a ttrpg game world creator and game designer assistant. 
-        You help build the setting for amazing adventures.
+        You help build the setting for amazing adventures and weave a story with opportunity for interaction.
         You want to avoid fantasy tropes and commonly used language.
         """
         self.system_role_msg = {"role": "system","content": [{"type": "text","text": f"{self.system_role}"}]}
@@ -28,11 +28,7 @@ class GPT4oClient:
 
     def _create_messages(self, prompt):
         msgs=[self.system_role_msg, {"role": "user", "content": [{"type": "text","text": f"{prompt}"}]}]
-        
-        # Logging prompt
-        log_msg=f"Logging Prompt:\n ${prompt}"
-        logging.debug(log_msg)
-        
+            
         return msgs
     
     def _parse_json(self, json_inputs):
@@ -45,7 +41,9 @@ class GPT4oClient:
             
         # Let's add a delay to stop hitting ratelimits
         time.sleep(15)
-            
+        
+        logging.debug(f"<<< OUTPUT FROM LLM:\n{json_inputs}")
+        
         return dict_output
 
     # this is the step 1 map review    
@@ -81,6 +79,7 @@ class GPT4oClient:
                 "type": "json_object"
             }
         )
+        logging.info("Map reading does not parse json. Sends directly to Worldbuilder.")
         return response.choices[0].message.content
     
     def generate_detailed_region_description(self, region, world_info='', style_input=''):
@@ -104,6 +103,14 @@ class GPT4oClient:
             style_input
         )
         prompt+="{\'description\' : \'An example descriptive paragraph\',\'lore\' : \'Example history, mood or lore of this region in one paragraph\'}"
+        
+        if self._count_words_in_prompt(prompt) >= 1000:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
+        
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+        
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -133,6 +140,13 @@ class GPT4oClient:
         )
         
         prompt += "{\'name\' : \'location name\', \'description\' : \'An example descriptive paragraph\', \'lore\' : \'Example history, mood or lore of this region in one paragraph\' }"
+        
+        if self._count_words_in_prompt(prompt) >= 1000:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
+        
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -167,7 +181,8 @@ class GPT4oClient:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
-            
+        
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -184,7 +199,6 @@ class GPT4oClient:
         INSTRUCTIONS: Review all of the characteristics of the selected region and develop an interesting task, question or quest for the region.
         Please return a paragraph and be merely a prompt or suggestion used for direction.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
-        The output should consist of two objects: "title" and "description".
         This drama is occurring in {}, a {}. 
         Short description: {}\n
         World Info: {}
@@ -197,23 +211,25 @@ class GPT4oClient:
             world_info,
             style_input
         )
-        prompt += "{\'description\' : \'describe the visible appearance of this character in one paragraph\',\'personality\' : \'an interesting situation or challenge\'}"
+        prompt += "{\'title\' : \'A unique title to describe the situation\',\'description\' : \'brief prompt for a short local adventure or challenge.\'}"
         
-        prompt+="Characters:\n"
+        prompt+="The sitatuation may involve the following characters or locations:"
+        prompt+="\nCharacters:\n"
         for i in region['characters']:
             if 'personality' in region['characters'][i]:
                 prompt += f" - {region['characters'][i]['personality']}"
             
-        prompt+="Significant locations:\n"
+        prompt+="\nSignificant locations:\n"
         for i in region['locations']:
             if 'lore' in region['locations'][i]:
                 prompt+=f" - {region['locations'][i]['lore']}"
-                
+    
         if self._count_words_in_prompt(prompt) >= 1000:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
-                 
+        
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")         
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -228,18 +244,20 @@ class GPT4oClient:
     def generate_random_encounter(self, region, world_info):
         prompt = """
         INSTRUCTIONS: Review all of the characteristics of the selected region and create a short but interesting random encounter.
-        Please return 1-2 paragraphs describing a detail description of the situation or opportunity. Some can be good, some situations can be bad.
+        Please return a short paragraph describing a detail description of the situation or opportunity. Some can be good, some situations can be bad.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays. 
         The output should consist of one object: "encounter"
         This drama is occurring in {}, a {}. 
         Short description: {}\n
         World Info: {}
+        Example JSON:
         """.format(
             region['LocationName'],
             region['LocationType'],
             region['ShortDescription'],
             world_info
         )
+        prompt += "{\'description\' : \'A short description of the event that is occurring at present.\',\'opportunity\' : \'A very short segway into why a person would get involved, if they have a choice at all.\'}"
         
         prompt += "Characters:\n"
         for character in region['characters']:
@@ -253,7 +271,13 @@ class GPT4oClient:
             if 'description' in location and 'lore' in location:
                 prompt += f" - {location['description']}. {location['lore']}."
                 logging.warn("missing important location  elements")
-                 
+                
+        if self._count_words_in_prompt(prompt) >= 1000:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warn(prompt)
+        
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")         
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=self._create_messages(prompt),
@@ -287,15 +311,40 @@ class GPT4oClient:
         # Return the relative path of the downloaded image
         return file_path
     
-    def _shorten_prompt(self, input_prompt):
-        prompt = "Shorten this prompt to make it less than 800 words. Summarize stories to single sentences or cut details not necessary for an artistic rendering:\n"
+    def _summarize_context(self, input_prompt):
+        prompt = "Please summarize the user's input text into a shortened and organized format optimized for use later as context for language models:\n"
         prompt += input_prompt
         response = openai.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo-16k",
             messages=self._create_messages(prompt),
             max_tokens=1000,
         )
+        time.sleep(5)
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return response.choices[0].message.content
+    
+    def _shorten_prompt(self, input_prompt):
+        prompt = """
+        This prompt is too long. 
+        Please optimize this prompt for comsumption by gpt-4o-mini.
+        If JSON output is requested, please be sure that JSON output is specificed in the prompt. 
+        Summarize stories to single sentences or cut unneeded details:\n"""
+        prompt += input_prompt
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo-16k",
+            messages=self._create_messages(prompt),
+            max_tokens=1000,
+        )
+        output_content = response.choices[0].message.content
+        if 'JSON' not in response.choices[0].message.content:
+            output_content=response.choices[0].message.content
+            output_content += "\nReturn this information in JSON format." 
+        
+        time.sleep(5)
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
+        return output_content
     
     def _shorten_response(self, input_response):
         prompt = "This json data is too long and not in properly formatted. Please make the content shorter and format in proper JSON. Input to be revised: \n"
@@ -306,8 +355,10 @@ class GPT4oClient:
             max_tokens=1000,
             response_format={
                 "type": "json_object"
-            }
+            }    
         )
+        time.sleep(5)
+        logging.warn(" --- Incomplete JSON data fix attempted.")
         return response.choices[0].message.content
     
     def _optimize_dalle_prompt(self, input_prompt):
@@ -318,6 +369,9 @@ class GPT4oClient:
             messages=self._create_messages(prompt),
             max_tokens=1000,
         )
+        time.sleep(5)
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+        logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return response.choices[0].message.content
     
     def _count_words_in_prompt(self, prompt_string):
@@ -335,11 +389,11 @@ class GPT4oClient:
         
         prompt = f"""
         Generate this person's portrait based on the following description: {character_description}
-        The portrait should appear to be a detailed sketch from memory with touches of watercolor. No text in the image.
         Illustration style: {illustration_style}
         """.strip(' \t\n\r')
         
         prompt = self._optimize_dalle_prompt(prompt)
+        logging.debug(f"<< INPUT TO DALLE:\n{prompt}\n")
         try:
             response = openai.images.generate(
                 model="dall-e-3",
@@ -366,12 +420,11 @@ class GPT4oClient:
         
         prompt = f"""
         Draw a stylized isometric map of this place: {location_description}
-        This image should have the look of a drawing made from memory by an architect or cartographer. No text in the image.
         Illustration style: {illustration_style}
         """
         
         prompt = self._optimize_dalle_prompt(prompt)
-        
+        logging.debug(f"<< INPUT TO DALLE:\n{prompt}\n")
         try:
             response = openai.images.generate(
                 model="dall-e-3", # temporary
@@ -385,10 +438,6 @@ class GPT4oClient:
             logging.error(error_message)
             print(" - An error occurred while generating the image. Details have been logged.")
             return None
-        
-        # Logging prompt
-        log_msg=f"Logging Prompt:\n ${prompt}"
-        logging.debug(log_msg)
         
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
