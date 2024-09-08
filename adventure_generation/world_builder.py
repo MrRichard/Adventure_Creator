@@ -17,7 +17,6 @@ class WorldBuilder:
             self.context_extractor.get_writing_style())
             
     def _optimize_user_input(self, input_copy):
-        print(" - Optimizing input copy")
         optimized_copy = self.llm_client._summarize_context(input_copy)
         return optimized_copy
     # This starts the region development chain. This looks like:
@@ -48,7 +47,7 @@ class WorldBuilder:
                 self.optimized_style
             )
 
-            if 'name' not in loc:
+            if 'name' not in loc.keys():
                 loc['name'] = f"Location #{i+1}"
                 #loc=self.llm_client._fix_json_response(loc)
                 
@@ -65,7 +64,7 @@ class WorldBuilder:
                 self.optimized_context,
                 self.optimized_style
             )
-            if 'name' not in char:
+            if 'name' not in char.keys():
                 char['name'] = f"Character #{i+1}"
                 #char=self.llm_client._fix_json_response(char)
                 
@@ -95,24 +94,29 @@ class WorldBuilder:
             created_encounters[i] = encounter
         self.region['random_encounter_table'] =  created_encounters
         
-        # # Step 6 - Create character portraits
-        # print(f"{self.region['LocationName']} - Generating character portraits")
-        # for character in self.region['characters']:
-        #     portrait_file=self.llm_client.generate_character_portrait(
-        #         character_description = self.region['characters'][character]['description'],
-        #         world_info=self.optimized_context,
-        #         illustration_style=self.optimized_style
-        #     )
-        #     self.region['characters'][character]['portrait'] =  portrait_file
+        return self.region
+    
+    
+    # these have to be done separately because I will need DALL-E for now.    
+    def region_illustration_chain(self, llm):
+        # Step 6 - Create character portraits
+        print(f"{self.region['LocationName']} - Generating character portraits")
+        for character in self.region['characters']:
+            portrait_file=llm.generate_character_portrait(
+                character_description = self.region['characters'][character]['description'],
+                world_info=self.optimized_context,
+                illustration_style=self.optimized_style
+            )
+            self.region['characters'][character]['portrait'] =  portrait_file
             
-        # # Step 7 - Create location maps 
-        # print(f"{self.region['LocationName']} - Generating location maps")
-        # for loc in self.region['locations']:
-        #     location_map=self.llm_client.generate_location_maps(
-        #         location_description = self.region['locations'][loc]['description'],
-        #         world_info=self.optimized_context,
-        #         illustration_style=self.optimized_style
-        #     )
-        #     self.region['locations'][loc]['illustration'] =  location_map
+        # Step 7 - Create location maps 
+        print(f"{self.region['LocationName']} - Generating location maps")
+        for loc in self.region['locations']:
+            location_map=llm.generate_location_maps(
+                location_description = self.region['locations'][loc]['description'],
+                world_info=self.optimized_context,
+                illustration_style=self.optimized_style
+            )
+            self.region['locations'][loc]['illustration'] =  location_map
         
         return self.region

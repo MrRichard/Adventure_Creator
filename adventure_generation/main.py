@@ -15,7 +15,7 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 global USING_MONEY
 USING_MONEY = False
 
-def world_builder_task(context, region, llm_client, output_queue):
+def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
     # 1. Describe the region in generalized detail
     # 2. Create each new location and describe it in detail
@@ -24,16 +24,18 @@ def world_builder_task(context, region, llm_client, output_queue):
     # 5. Create a minor side quest that connect characters and locations.
     
     print(f" - starting thread for region: {region['LocationName']}")
-    world_builder = WorldBuilder(context, region, llm_client)
     
+    if USING_MONEY == True:
+        world_builder = WorldBuilder(context, region, llms[0])
+    else:
+        world_builder = WorldBuilder(context, region, llms[1])
+        
     built = world_builder.region_development_chain()
+    built = world_builder.region_illustration_chain(llms[0])
+    
     output_queue.put(built)
     
 def world_builder_runner(context_extractor, world, llms):
-    
-    #gpt4o_client, ollama_client = llms
-    gpt4o_client = llms[0]
-    ollama_client = llms[1]
 
     print("Creating a new world...")
     # Start Rolling for a random number of characters and locations in each region
@@ -86,10 +88,7 @@ def world_builder_runner(context_extractor, world, llms):
     def worker():
         while not region_queue.empty():
             region = region_queue.get()
-            if USING_MONEY:
-                world_builder_task(context_extractor, region, gpt4o_client, output_queue)
-            else:
-                world_builder_task(context_extractor, region, ollama_client, output_queue)
+            world_builder_task(context_extractor, region, llms, output_queue)
             region_queue.task_done()
             
     for i in range(max_threads):

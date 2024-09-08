@@ -322,7 +322,7 @@ class GPT4oClient:
             messages=self._create_messages(prompt),
             max_tokens=1000,
         )
-        time.sleep(5)
+        time.sleep(10)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return response.choices[0].message.content
@@ -344,7 +344,7 @@ class GPT4oClient:
             output_content=response.choices[0].message.content
             output_content += "\nReturn this information in JSON format." 
         
-        time.sleep(5)
+        time.sleep(10)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return output_content
@@ -360,7 +360,7 @@ class GPT4oClient:
                 "type": "json_object"
             }    
         )
-        time.sleep(5)
+        time.sleep(10)
         logging.warn(" --- Incomplete JSON data fix attempted.")
         return response.choices[0].message.content
     
@@ -372,7 +372,7 @@ class GPT4oClient:
             messages=self._create_messages(prompt),
             max_tokens=1000,
         )
-        time.sleep(5)
+        time.sleep(10)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         logging.debug(f">> OUTPUT FROM LLM:\n{response.choices[0].message.content}\n")
         return response.choices[0].message.content
@@ -391,7 +391,8 @@ class GPT4oClient:
             return None
         
         prompt = f"""
-        Generate this person's portrait based on the following description: {character_description}
+        Generate a detailed and close person's portrait based on the following description: {character_description}
+        Single frame. No split frames or mosaics. No text or illumination.
         Illustration style: {illustration_style}
         """.strip(' \t\n\r')
         

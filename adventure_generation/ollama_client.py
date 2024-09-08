@@ -275,7 +275,7 @@ class ollamaClient:
         )
         time.sleep(1)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
-        #logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
+        
         return response['message']['content'] 
     
     def _shorten_prompt(self, input_prompt):
