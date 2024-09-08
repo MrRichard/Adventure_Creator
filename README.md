@@ -1,6 +1,6 @@
 # AI Adventure Creator
 
-Welcome to AI Adventure Creator! This project is a thrilling experiment in leveraging the power of AI to create resources for desperate ttrpg GMs. Utilizing a multi-threaded approach, this tool spends your money efficiently to bring your campaign ideas to life through the use of Large Language Models (LLM) and AI image generation.
+Welcome to AI Adventure Creator! This project is a learning project for scripted interactions with remote Large Language Models (LLM). Utilizing a multi-threaded approach, this tool spends your money to bring your campaign ideas to life through the use of LLM and AI image generation.
 
 ## Features
 
@@ -19,6 +19,22 @@ Please note that this project is in active development. As such, many features a
 - **API Call Estimator**: Very crude and requires improvement.
 - **Prompt Management**: Prompts often spiral out of control.
 - **DALL-E Text Issues**: DALL-E frequently includes unwanted text in images.
+
+## Sample Images
+
+Provide a map image and automatically generate a random number of:
+
+### Characters
+
+![Character Image](sample_inputs/images/characters.jpg)
+
+### Locations
+
+![Location Image](sample_inputs/images/locations.jpg)
+
+### Encounters
+
+![Encounter Image](sample_inputs/images/encounters.jpg)
 
 ## Prerequisites
 

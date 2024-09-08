@@ -4,6 +4,7 @@ import json
 import requests
 import string
 import random
+import sys
 
 # To prevent rate limit issues
 import time
@@ -106,7 +107,7 @@ class GPT4oClient:
         )
         prompt+="{\'description\' : \'An example descriptive paragraph\',\'lore\' : \'Example history, mood or lore of this region in one paragraph\'}"
         
-        if self._count_words_in_prompt(prompt) >= 1000:
+        if self._get_size_of_string(prompt) >= 15:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
@@ -143,7 +144,7 @@ class GPT4oClient:
         
         prompt += "{\'name\' : \'location name\', \'description\' : \'An example descriptive paragraph\', \'lore\' : \'Example history, mood or lore of this region in one paragraph\' }"
         
-        if self._count_words_in_prompt(prompt) >= 1000:
+        if self._get_size_of_string(prompt) >= 15:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
@@ -179,7 +180,7 @@ class GPT4oClient:
         )
         prompt+="{\'name\' : \'Character name\',\'description\' : \'describe the visible appearance of this character in one paragraph\', \'personality\' : \'convey the personality, world view, occupation and quirks of this character in one paragraph\'}"
         
-        if self._count_words_in_prompt(prompt) >= 1000:
+        if self._get_size_of_string(prompt) >= 15:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
@@ -226,7 +227,7 @@ class GPT4oClient:
             if 'lore' in region['locations'][i]:
                 prompt+=f" - {region['locations'][i]['lore']}"
     
-        if self._count_words_in_prompt(prompt) >= 1000:
+        if self._get_size_of_string(prompt) >= 15:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
@@ -275,7 +276,7 @@ class GPT4oClient:
             else:
                 logging.warn("missing important location  elements")
                 
-        if self._count_words_in_prompt(prompt) >= 1000:
+        if self._get_size_of_string(prompt) >= 15:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
             logging.warn(prompt)
@@ -382,6 +383,14 @@ class GPT4oClient:
         words = prompt_string.split()
         # Return the number of words
         return len(words)
+    
+    def _get_size_of_string(self, string_var):
+        # Get the number of bytes of the string
+        byte_size = sys.getsizeof(string_var)
+        # Convert bytes to kilobytes
+        kb_size = byte_size / 1024
+        return kb_size
+    
     
     def generate_character_portrait(self, character_description, world_info, illustration_style='', image_storage='character_illustrations'):
         

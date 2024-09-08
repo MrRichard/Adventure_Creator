@@ -13,7 +13,7 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 # By default, I want to use GPT as little as possible despite gpt4o-mini being 
 # extremely affordable. While testing, I will use ollama when possible.
 global USING_MONEY
-USING_MONEY = False
+USING_MONEY = True
 
 def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
