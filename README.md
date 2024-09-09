@@ -1,12 +1,12 @@
 # AI Adventure Creator
 
-Welcome to AI Adventure Creator! This project is a learning project for scripted interactions with remote Large Language Models (LLM). Utilizing a multi-threaded approach, this tool spends your money to bring your campaign ideas to life through the use of LLM and AI image generation.
+Welcome to AI Adventure Creator! This project is a learning project for me (so some of the code is sketchy at best). The idea is to created scripted interactions with remote Large Language Models (LLM) that take a simple map image and create ttrpg world resources. Utilizing a multi-threaded approach, this tool spends your money to bring your campaign ideas to life through the use of LLM and AI image generation.
 
 ## Features
 
-- **Multi-threaded AI Processing**: Generates detailed campaign settings by dividing tasks among multiple threads (but throttled because ratelimits)
-- **LLM Integration**: Leverages large language models to create narrative elements.
-- **AI Image Generation**: Uses state-of-the-art generative models to craft custom visuals for your campaign.
+- **Multi-threaded AI Processing**: Generates detailed campaign settings by dividing tasks among multiple threads (but throttled in some cases because of ratelimits)
+- **LLM Integration**: Leverages large language models to create narrative elements: Currently, OpenAI and Ollama
+- **AI Image Generation**: Uses state-of-the-art generative models to craft custom visuals for your campaign. (This feature is currently limited to DALLE)
 
 ## Important Notes
 
@@ -14,15 +14,16 @@ Welcome to AI Adventure Creator! This project is a learning project for scripted
 
 Please note that this project is in active development. As such, many features are not fully functional or have known issues, including but not limited to:
 
-- **Ollama Code**: Needs updates.
-- **Image Parsing Alternatives**: Current use of GPT-4o is insufficient; investigating better alternatives as Llava doesn't meet needs.
-- **API Call Estimator**: Very crude and requires improvement.
-- **Prompt Management**: Prompts often spiral out of control.
+- **Ollama Code**: Needs fixes. 
+    - Initial map reading is only done with gpt-4o. The llava:13b model does not appear to work well for maps.
+    - llama3.1 seems eager to break rules about structured outputs.
+- **API Call Estimator**: Very crude and requires improvement. This will probably get dropped because ...
+- **Prompt Management**: Prompts often spiral out of control. There are lenth and structure checks, but those cost additional api calls.
 - **DALL-E Text Issues**: DALL-E frequently includes unwanted text in images.
 
 ## Sample Images
 
-Provide a map image and automatically generate a random number of:
+Provide a map image and automatically generate (when it works) a random number of:
 
 ### Characters
 

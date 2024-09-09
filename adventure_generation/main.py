@@ -13,7 +13,11 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 # By default, I want to use GPT as little as possible despite gpt4o-mini being 
 # extremely affordable. While testing, I will use ollama when possible.
 global USING_MONEY
-USING_MONEY = True
+USING_MONEY = False
+
+# Do not generate image outputs
+global CREATE_IMAGES
+CREATE_IMAGES=False
 
 def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
@@ -31,7 +35,9 @@ def world_builder_task(context, region, llms, output_queue):
         world_builder = WorldBuilder(context, region, llms[1])
         
     built = world_builder.region_development_chain()
-    built = world_builder.region_illustration_chain(llms[0])
+    
+    if CREATE_IMAGES == True:
+        built = world_builder.region_illustration_chain(llms[0])
     
     output_queue.put(built)
     
@@ -63,7 +69,7 @@ def world_builder_runner(context_extractor, world, llms):
     # Warn the user about the number of queries
     print(f"Warning: about to perform {query_count} queries. Please confirm if this is okay.")
     if USING_MONEY == True:
-        print(f"Warning: All queries will use OpenAI GPT 4o or 4o-mini")
+        print(f"Warning: All queries will use OpenAI GPT 4o, DALL-E3 or 4o-mini")
     else:
         print(f"You are running in FREE MODE and will use a local ollama server")
     user_confirmation = input("Enter 'yes' to proceed, or any other key to stop: ")
@@ -81,7 +87,7 @@ def world_builder_runner(context_extractor, world, llms):
         region_queue.put(region)
 
     threads = []
-    max_threads = 3
+    max_threads = 2
     
     # We are giving the worker the context_extractor object, along with our chosen llm model
     # TODO: review how the LLM logic is used. We might only need to do this once.

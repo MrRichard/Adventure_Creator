@@ -5,6 +5,9 @@ import requests
 import string
 import random
 
+### Warning: This is now out of data.
+### I am phasing this out in lew of the native ollama class
+
 # To prevent rate limit issues
 import time
 
