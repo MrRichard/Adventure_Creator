@@ -17,7 +17,7 @@ USING_MONEY = False
 
 # Do not generate image outputs
 global CREATE_IMAGES
-CREATE_IMAGES=False
+CREATE_IMAGES=True
 
 def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
@@ -36,8 +36,21 @@ def world_builder_task(context, region, llms, output_queue):
         
     built = world_builder.region_development_chain()
     
+    # save waypoint with all json for review
+    expanded_world_json_path = 'json_outputs/expanded_world_waypoint1.json'
+    with open(expanded_world_json_path, 'w') as file:
+        json.dump(built, file, indent=4)
+    
     if CREATE_IMAGES == True:
-        built = world_builder.region_illustration_chain(llms[0])
+        if USING_MONEY == True:
+            built = world_builder.region_illustration_chain(llms[0])
+        else:
+            built = world_builder.region_illustration_chain_sd(llms[1])
+    
+        # save waypoint with images
+        expanded_world_json_path = 'json_outputs/expanded_world_waypoint2.json'
+        with open(expanded_world_json_path, 'w') as file:
+            json.dump(built, file, indent=4)
     
     output_queue.put(built)
     

@@ -26,6 +26,7 @@ class ollamaClient:
         self.base_url = "http://192.168.1.115:11434"
         self.client = Client(host=self.base_url)
         self.jstructs = JsonStructures()
+        self.general_use_model = "gemma2:9b"
 
         logging.info("Ollama NATIVE Client initiated")
 
@@ -88,7 +89,7 @@ class ollamaClient:
         prompt = "Please summarize the user's input text into a shortened and organized format optimized for use later as context for language models:\n"
         prompt += input_prompt
         response = self.client.chat(
-            model="llama3.1",
+            model=self.general_use_model,
             messages=self._create_messages(prompt),
         )
         time.sleep(1)
@@ -100,12 +101,12 @@ class ollamaClient:
     def _shorten_prompt(self, input_prompt):
         prompt = """
         This prompt is too long. 
-        Please optimize this prompt for comsumption by llama3.1.
+        Please optimize this prompt for comsumption by an Open Source large Language model.
         If JSON output is requested, please be sure that JSON output is specificed in the prompt. 
         Summarize stories to single sentences or cut unneeded details:\n"""
         prompt += input_prompt
         response = self.client.chat(
-            model="llama3.1",
+            model=self.general_use_model,
             messages=self._create_messages(prompt),
         )
         output_content = response["message"]["content"]
@@ -124,7 +125,7 @@ class ollamaClient:
         prompt = "This json data is not in properly formatted. Please format output in proper JSON. Input to be revised: \n"
         prompt += input_response
         response = self.client.chat(
-            model="llama3.1",  # this might be sketchy.
+            model=self.general_use_model,  # this might be sketchy.
             messages=self._create_messages(prompt),
             format="json",
         )
@@ -140,6 +141,26 @@ class ollamaClient:
         # Convert bytes to kilobytes
         kb_size = byte_size / 1024
         return kb_size
+    
+    # This service function strips a descriptive prompt down to keywords for opensource sd models
+    def optimize_for_stable_diffusion(self, input_prompt, visual_style):
+        prompt = (
+            "Optimize the following prompt for Stable Diffusion by reducing it to keywords. "
+            "The keywords should focus on description, styling, texture, and lighting.\n"
+            f"Input prompt: {input_prompt}\n"
+            f"Visual Style: {visual_style}\n"
+        )
+
+        response = self.client.chat(
+            model=self.general_use_model,
+            messages=self._create_messages(prompt),
+        )
+
+        # Adding a delay to prevent hitting rate limits
+        time.sleep(1)
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+        logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
+        return response["message"]["content"].strip()
 
 
     def generate_detailed_region_description(self, region, world_info="", style_input=""):
@@ -174,7 +195,7 @@ class ollamaClient:
         logging.debug(self._create_messages(prompt))
 
         response = self.client.chat(
-            model="llama3.1", messages=self._create_messages(prompt), format="json"
+            model=self.general_use_model, messages=self._create_messages(prompt), format="json"
         )
         return self._parse_json(response["message"]["content"])
 
@@ -206,7 +227,7 @@ class ollamaClient:
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
-            model="llama3.1", messages=self._create_messages(prompt), format="json"
+            model=self.general_use_model, messages=self._create_messages(prompt), format="json"
         )
         return self._parse_json(response["message"]["content"])
 
@@ -236,7 +257,7 @@ class ollamaClient:
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
-            model="llama3.1", messages=self._create_messages(prompt), format="json"
+            model=self.general_use_model, messages=self._create_messages(prompt), format="json"
         )
         return self._parse_json(response["message"]["content"])
 
@@ -278,7 +299,7 @@ class ollamaClient:
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
-            model="llama3.1", messages=self._create_messages(prompt), format="json"
+            model=self.general_use_model, messages=self._create_messages(prompt), format="json"
         )
         return self._parse_json(response["message"]["content"])
 
@@ -322,6 +343,7 @@ class ollamaClient:
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
-            model="llama3.1", messages=self._create_messages(prompt), format="json"
+            model=self.general_use_model, messages=self._create_messages(prompt), format="json"
         )
         return self._parse_json(response["message"]["content"])
+    
