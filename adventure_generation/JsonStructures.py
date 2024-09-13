@@ -13,6 +13,7 @@ class JsonStructures:
 
     def generate_location(self):
         return json.dumps({
+            'name' : 'the name of the location',
             'description': '1 paragraph of detailed description of this place',
             'lore': '1 paragraph about the history, mood or unique quality of this place',
             'other': {}
@@ -20,7 +21,7 @@ class JsonStructures:
 
     def generate_character(self):
         return json.dumps({
-            'name': 'Character\' name',
+            'name': 'the name of the character',
             'description' : '1 paragraph description of the character\'s physical appearance and visible qualities',
             'personality': '1-2 sentences describing the character\'s demeanor, worldview or mood',
             'race' : 'Character\'s race chosen at random from those availabe in the world descrition',
@@ -32,6 +33,7 @@ class JsonStructures:
     def generate_random_encounter(self):
         return json.dumps({
             "encounter" : {
+                'title' : 'A short title, possibly with rhetorical elements like irony, puns, or alliteration.',
                 'description': '1 paragraph description of a random encounter or event that requires the party to engage',
                 'opportunity': '1-2 sentences describing why the party should or should not get involved',
                 'other': {}

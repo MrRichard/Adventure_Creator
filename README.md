@@ -15,14 +15,15 @@ Welcome to AI Adventure Creator! This project is a learning project for me (so s
 Please note that this project is in active development. As such, many features are not fully functional or have known issues, including but not limited to:
 
 - **Ollama Code**: Needs fixes. 
-    - Initial map reading is only done with gpt-4o. The llava:13b model does not appear to work well for maps.
+    - Initial map reading is only done with gpt-4o. The llava:13b model does not appear to work well for maps. I am hoping Pixtral will be able to do the job.
     - llama3.1 seems eager to break rules about structured outputs.
 - **API Call Estimator**: Very crude and requires improvement. This will probably get dropped because ...
 - **Prompt Management**: Prompts often spiral out of control. There are lenth and structure checks, but those cost additional api calls.
-- **DALL-E Text Issues**: DALL-E frequently includes unwanted text in images.
+- **Docker container build**: I indend to provide a Dockerfile and make a completed Docker or Podman container available.
 
 ## Sample Images
 
+Review the `sample_inputs/` contents.You can customize world lore and visual / writing style in these files.
 Provide a map image and automatically generate (when it works) a random number of:
 
 ### Characters
@@ -55,8 +56,18 @@ Provide a map image and automatically generate (when it works) a random number o
     ```
 
 3. **Install requirements and run the project**:
+    `run.sh` is a simple bash script that will run `pip -r requirements.txt` before running the start script.
     ```bash
-    ./run.sh
+    $ .venv/bin/activate
+    (.venv)$ ./run.sh
+    ```
+
+    `run.sh` runs this command:
+    ```bash
+    (.venv)$ python -m adventure_generation.main \
+    ./sample_inputs/ariel_coast.txt \
+    ./sample_inputs/ariel_coast.jpg \
+    ./sample_inputs/styles.json
     ```
 
 ## Have Fun

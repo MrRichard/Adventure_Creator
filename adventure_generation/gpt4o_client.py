@@ -441,7 +441,7 @@ class GPT4oClient:
 
         prompt = f"""
         Generate a detailed portrait of face and torso based on the following description: {character_description}
-        Single frame. No split frames or mosaics. No text or illumination.\n
+        Please carefully render in standard american alphabetic characters the name of the character in a handwritten style once.\n
         Illustration style: {illustration_style}
         """.strip(
             " \t\n\r"
@@ -482,7 +482,8 @@ class GPT4oClient:
             return None
 
         prompt = f"""
-        Draw a stylized map of this place: {location_description}\n
+        Draw a stylized map of this place: {location_description}. \n
+        Please carefully render in standard american alphabetic characters the name of the character in a handwritten style once. \n
         Illustration style: {illustration_style}
         """
 

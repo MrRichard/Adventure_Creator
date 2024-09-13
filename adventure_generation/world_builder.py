@@ -52,7 +52,6 @@ class WorldBuilder:
 
             if "name" not in loc.keys():
                 loc["name"] = f"Location #{i+1}"
-                # loc=self.llm_client._fix_json_response(loc)
 
             location_name = loc["name"] if "name" in loc else None
             created_locations[location_name] = loc

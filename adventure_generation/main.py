@@ -19,6 +19,17 @@ USING_MONEY = True
 global CREATE_IMAGES
 CREATE_IMAGES=True
 
+global DEBUG
+DEBUG=False
+if "AC_DEBUG" in os.environ:
+    print("~~~~~ We are in DEBUG MODE ~~~~~")
+    print("""
+    This means:
+    - only 1 character, location, and quest.
+          """)
+    DEBUG=True
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
 def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
     # 1. Describe the region in generalized detail
@@ -74,10 +85,12 @@ def world_builder_runner(context_extractor, world, llms):
             region['num_characters'] = random.randint(1, 4)
             region['quests'] = random.randint(1, 4)
             
-        # DEBUG
-        region['num_locations'] = 1
-        region['num_characters'] = 1
-        region['quests'] = 1
+        # DEBUG: Let's do this the right way
+        
+        if DEBUG is True:
+            region['num_locations'] = 1
+            region['num_characters'] = 1
+            region['quests'] = 1
         
     # Warn the user about the number of queries
     print(f"Warning: about to perform 'very many' API calls. Generally more than 100 per map location. Please confirm if this is okay.")
@@ -197,6 +210,12 @@ def main(prompt_file, map_image, settings):
     template_dir = 'adventure_generation/templates'  # Directory where your HTML templates are stored
     document_generator = DocumentGenerator(expanded_world_json_path, template_dir, story_output_dir)
     document_generator.generate_html()
+    
+    # remove waypoint files
+    waypoint_files = ['json_outputs/expanded_world_waypoint1.json', 'json_outputs/expanded_world_waypoint2.json']
+    for waypoint in waypoint_files:
+        if os.path.exists(waypoint):
+            os.remove(waypoint)
     
     
     print("World generation complete!")
