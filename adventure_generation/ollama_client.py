@@ -48,7 +48,7 @@ class ollamaClient:
         try:
             dict_output = json.loads(json_inputs)
         except json.decoder.JSONDecodeError as e:
-            logging.warn(f"Failed to decode JSON. Error: {e}")
+            logging.warning(f"Failed to decode JSON. Error: {e}")
             abbreviated_json = self._fix_json_response(json_inputs)
             dict_output = json.loads(abbreviated_json)
 
@@ -130,7 +130,7 @@ class ollamaClient:
             format="json",
         )
         time.sleep(1)
-        logging.warn(" --- Incomplete JSON data fix attempted.")
+        logging.warning(" --- Incomplete JSON data fix attempted.")
         return response["message"]["content"]
 
     # This service function gets the size of the string
@@ -145,7 +145,7 @@ class ollamaClient:
     # This service function strips a descriptive prompt down to keywords for opensource sd models
     def optimize_for_stable_diffusion(self, input_prompt, visual_style):
         prompt = (
-            "Optimize the following prompt for Stable Diffusion by reducing it to keywords. "
+            "Optimize the following prompt for Stable Diffusion by reducing it to a single line of comma-separated keywords. "
             "The keywords should focus on description, styling, texture, and lighting.\n"
             f"Input prompt: {input_prompt}\n"
             f"Visual Style: {visual_style}\n"
@@ -189,7 +189,7 @@ class ollamaClient:
         if self._get_size_of_string(prompt) >= 90:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+            logging.warning(prompt)
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         logging.debug(self._create_messages(prompt))
@@ -223,7 +223,7 @@ class ollamaClient:
         if self._get_size_of_string(prompt) >= 90:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+            logging.warning(prompt)
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
@@ -253,7 +253,7 @@ class ollamaClient:
         if self._get_size_of_string(prompt) >= 90:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+            logging.warning(prompt)
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
@@ -295,7 +295,7 @@ class ollamaClient:
         if self._get_size_of_string(prompt) >= 90:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+            logging.warning(prompt)
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(
@@ -327,19 +327,19 @@ class ollamaClient:
             if "description" in character and "personality" in character:
                 prompt += f" - {character['description']}. {character['personality']}."
             else:
-                logging.warn("missing important character elements")
+                logging.warning("missing important character elements")
 
         prompt += "Significant locations:\n"
         for location in region["locations"]:
             if "description" in location and "lore" in location:
                 prompt += f" - {location['description']}. {location['lore']}."
             else:
-                logging.warn("missing important location  elements")
+                logging.warning("missing important location  elements")
 
         if self._get_size_of_string(prompt) >= 90:
             print(" - Shortening prompt")
             prompt = self._shorten_prompt(prompt)
-            logging.warn(prompt)
+            logging.warning(prompt)
 
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         response = self.client.chat(

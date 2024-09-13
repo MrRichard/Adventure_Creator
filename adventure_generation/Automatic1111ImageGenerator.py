@@ -24,7 +24,7 @@ class Automatic1111ImageGenerator:
             return None
 
     def generate_character_portrait(self, prompt):
-        prompt=f"Generate a character portrait based on the provided prompt.:\n{prompt} "
+        prompt=f"Generate a character portrait based on the provided prompt. Must be safe for work:\n{prompt} "
         payload = {
             "prompt": prompt,
             "steps": 30,
@@ -88,43 +88,4 @@ class Automatic1111ImageGenerator:
             return file_path
 
     def mega_negative_prompt(self):
-        return """
-            ai-generated, artifact, artifacts, bad quality, bad scan, blurred, 
-            blurry, compressed, compression artifacts, corrupted, dirty art scan, 
-            dirty scan, dithering, downsampling, faded lines, frameborder, grainy, 
-            heavily compressed, heavily pixelated, high noise, image noise, low dpi, 
-            low fidelity, low resolution, lowres, moire pattern, moiré pattern, 
-            motion blur, muddy colors, noise, noisy background, overcompressed, 
-            pixelation, pixels, poor quality, poor lineart, scanned with errors,
-            scan artifact, scan errors, very low quality, visible pixels BREAK amateur, 
-            amateur drawing, bad anatomy, bad art, bad aspect ratio, bad color, bad coloring, 
-            bad composition, bad contrast, bad crop, bad drawing, bad image, bad lighting, 
-            bad lineart, bad perspective, bad photoshop, bad pose, bad proportions, bad shading, 
-            bad sketch, bad trace, bad typesetting, bad vector, beginner, black and white, 
-            broken anatomy, broken pose, cartoon, clashing styles, color error, color issues, 
-            color mismatch, deformed, dirty art, disfigured, displeasing, distorted, 
-            distorted proportions, drawing, dubious anatomy, duplicate, early, 
-            exaggerated limbs, exaggerated pose, flat colors, gross proportions, 
-            incomplete, inconsistent proportions, inconsistent shading, inconsistent style, 
-            incorrect anatomy, lazy art, long neck, low contrast, low detail, low detail background, 
-            low effort, low quality background, malformed limbs, messy, messy drawing, messy lineart, 
-            misaligned, mutated hands, mutation, mutilated, no shading, off center, off model, 
-            off model errors, off-model, poor background, poor color, poor coloring, 
-            poorly colored, poorly drawn, poorly drawn face, poorly drawn hands, 
-            poorly proportioned, poorly scaled, poorly shaded, quality control, 
-            questionable anatomy, questionable quality, random background, rough, rough drawing, 
-            rough edges, rough sketch, rushed, shading error, sketch, sketchy, smudged, smudged lines, 
-            symmetrical, terrible quality, too many fingers, twisted, ugly, unclear, uncolored, 
-            uncoloured, under saturated, underexposed, uneven lines, unfinished, unfinished lineart, 
-            unpolished, worst quality, wrong anatomy, wrong proportions BREAK bar censor, censor, 
-            censor mosaic, censored, filter abuse, instagram filter, mosaic censoring, over filter, 
-            over saturated, over sharpened, overbrightened, overdarkened, overexposed, overfiltered, 
-            oversaturated BREAK aliasing, anatomy error, anatomy mistake, camera aberration, chromatic 
-            aberration, cloned face, color banding, cribbed from, cropped, draft, emoji, error, 
-            extra arms, extra digits, extra fingers, extra legs, extra limbs, fused fingers, gradient background, 
-            improper cropping, jagged edges, jpeg artifacts, missing, missing arms, missing legs, needs retage, 
-            no background, obstructed view, overlay text, placeholder, style mismatch, stylistic clash, 
-            tagme BREAK empty background, simple background, white background BREAK artist name, artist signature, 
-            artist unknown, signature, stolen artwork, username, watermark, watermark text, watermarked, 
-            web address, logo, patreon logo, sample watermark, sticker, sticker overlay, abstract, 
-            icon overlay, meme, monochrome, ms paint, pixel art, screencap, symetrical"""
+        return """"""

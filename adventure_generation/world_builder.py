@@ -103,11 +103,9 @@ class WorldBuilder:
         print(f"{self.region['LocationName']} - Generating character portraits")
         for character in self.region["characters"]:
             portrait_file = llm.generate_character_portrait(
-                character_description=self.region["characters"][character][
-                    "description"
-                ],
+                character_description=self.region["characters"][character]["description"],
                 world_info=self.optimized_context,
-                illustration_style=self.optimized_style,
+                illustration_style=self.context_extractor.get_visual_style(),
             )
             self.region["characters"][character]["portrait"] = portrait_file
 
@@ -117,7 +115,7 @@ class WorldBuilder:
             location_map = llm.generate_location_maps(
                 location_description=self.region["locations"][loc]["description"],
                 world_info=self.optimized_context,
-                illustration_style=self.optimized_style,
+                illustration_style=self.context_extractor.get_visual_style(),
             )
             self.region["locations"][loc]["illustration"] = location_map
 

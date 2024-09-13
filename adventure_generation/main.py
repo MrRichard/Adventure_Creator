@@ -13,7 +13,7 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 # By default, I want to use GPT as little as possible despite gpt4o-mini being 
 # extremely affordable. While testing, I will use ollama when possible.
 global USING_MONEY
-USING_MONEY = False
+USING_MONEY = True
 
 # Do not generate image outputs
 global CREATE_IMAGES
@@ -27,7 +27,7 @@ def world_builder_task(context, region, llms, output_queue):
     # 4. Create a custom encounter table of random events for this region
     # 5. Create a minor side quest that connect characters and locations.
     
-    print(f" - starting thread for region: {region['LocationName']}")
+    print(f" - Starting thread for region: {region['LocationName']}")
     
     if USING_MONEY == True:
         world_builder = WorldBuilder(context, region, llms[0])
@@ -62,27 +62,27 @@ def world_builder_runner(context_extractor, world, llms):
         
     # For each region, roll dice to determine the number of characters and locations need to be generated.
         if region['LocationType'] == 'bigTown':
-            region['num_locations'] = random.randint(1, 8)
-            region['num_characters'] = random.randint(1, 10)
+            region['num_locations'] = random.randint(4, 10)
+            region['num_characters'] = random.randint(4, 10)
             region['quests'] = random.randint(1, 6)
         elif region['LocationType'] == 'smallTown':
-            region['num_locations'] = random.randint(1, 4)
-            region['num_characters'] = random.randint(1, 6)
+            region['num_locations'] = random.randint(2, 6)
+            region['num_characters'] = random.randint(2, 6)
             region['quests'] = random.randint(1, 2)
         elif region['LocationType'] == 'other' or region['LocationType'] == 'NaturalFeature':
             region['num_locations'] = random.randint(1, 2)
             region['num_characters'] = random.randint(1, 4)
             region['quests'] = random.randint(1, 4)
             
-    # Perform a rough calculation
-    # TODO: This logic is broken. I would like to make this more accurate. 
-    total_characters_locations = sum([region['num_locations'] + region['num_characters'] for region in world['regions']])
-    query_count = total_characters_locations * 5 + len(world['regions'])
-
+        # DEBUG
+        region['num_locations'] = 1
+        region['num_characters'] = 1
+        region['quests'] = 1
+        
     # Warn the user about the number of queries
-    print(f"Warning: about to perform {query_count} queries. Please confirm if this is okay.")
+    print(f"Warning: about to perform 'very many' API calls. Generally more than 100 per map location. Please confirm if this is okay.")
     if USING_MONEY == True:
-        print(f"Warning: All queries will use OpenAI GPT 4o, DALL-E3 or 4o-mini")
+        print(f"Warning: All queries will use OpenAI GPT 4o, 4o-mini, 3.5-turbo, and DALL-E 3.")
     else:
         print(f"You are running in FREE MODE and will use a local ollama server")
     user_confirmation = input("Enter 'yes' to proceed, or any other key to stop: ")
@@ -100,7 +100,7 @@ def world_builder_runner(context_extractor, world, llms):
         region_queue.put(region)
 
     threads = []
-    max_threads = 2
+    max_threads = 3
     
     # We are giving the worker the context_extractor object, along with our chosen llm model
     # TODO: review how the LLM logic is used. We might only need to do this once.

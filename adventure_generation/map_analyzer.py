@@ -14,7 +14,7 @@ class MapAnalyzer:
         landscape_description = self.llm_client.generate_landscape_description(base64_image)
         
         # convert to dict
-        landscape_description = json.loads(landscape_description)
+        # landscape_description = json.loads(landscape_description)
         
         # save this to a file for review
         self._save_as_json(landscape_description)
