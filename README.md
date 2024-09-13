@@ -70,5 +70,30 @@ Provide a map image and automatically generate (when it works) a random number o
     ./sample_inputs/styles.json
     ```
 
+## Docker container usage
+```bash
+$ docker run --rm \
+-e OPENAI_API_KEY=$OPENAI_API_KEY \
+-v ./sample_inputs/:/app/input/ \
+-v ./output/:/app/output/ \
+mrrichard/adventure_creator:1.0 \
+/app/input/ariel_coast.txt /app/input/ariel_coast.jpg /app/input/styles.json
+```
+
+## Control Function with Environmental Variables
+| Variable                | Description                                                              | Options                                                                                 |
+|------------------------|--------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| `OPENAI_API_KEY`       | Your OpenAI API key.                                                    | Your OpenAI API key.                                                                  |
+| `AC_USE_MONEY`         | Set to 'True' to use paid OpenAI models or 'False' for free local runs. | `True` or `False` (default is `True`).                                               |
+| `AC_CREATE_IMAGES`     | Controls whether to generate images.                                    | `True` or `False` (default is `True`).                                              |
+| `AC_DEBUG`             | Enable debug mode to simplify task and check the flow.                 | `True` or `False` (default is `False`).                                             |
+| `AC_OLLAMA_SERVER`     | IP address of the Ollama server instance to connect to.                | Valid IP address or localhost (default is `localhost`*).                |
+| `AC_AUTO1111_SERVER`   | IP address of the AUTOMATIC1111 server instance to connect to.         | Valid IP address or localhost (default is `localhost`*).
+
+
+\* HTTP only. HTTPS will require changing code. Default port numbers will be applied:
+- Ollama port 111434
+- AUTO1111: 7860
+
 ## Have Fun
 I know the internet is being pumped full of AI trash. This project does its best to allow you to create novel combinations and use your creativity to create a base framework to play with. Have fun. Be aware that if used correctly, this will spend a few GPT bucks. 

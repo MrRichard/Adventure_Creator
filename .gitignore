@@ -7,3 +7,4 @@ location_maps/
 character_illustrations
 story_output
 *.log
+.venv/

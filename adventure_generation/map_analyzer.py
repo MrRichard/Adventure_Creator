@@ -23,7 +23,7 @@ class MapAnalyzer:
 
     def _save_as_json(self, landscape_description):
         filename = 'map_description.json'
-        output_path = os.path.join('json_outputs', filename)
+        output_path = os.path.join('output','json_outputs', filename)
         
         with open(output_path, 'w') as json_file:
             json.dump(landscape_description, json_file)

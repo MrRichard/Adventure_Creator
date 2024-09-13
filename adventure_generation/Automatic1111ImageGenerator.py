@@ -9,7 +9,17 @@ import string
 
 
 class Automatic1111ImageGenerator:
-    def __init__(self, base_url="http://192.168.1.115:7860"):
+    def __init__(self, base_url="http://localhost:7860"):
+        
+        # Allow the user to specify and IP address for an AUTOMATIC1111 server
+        if "AC_AUTO1111_SERVER" in os.environ:
+            self.base_url="http://{}:7860".format(
+                os.getenv("AUTO1111")
+            )
+        else:
+            self.base_url = base_url
+            
+            
         self.base_url = base_url
         self.api_endpoint = f"{self.base_url}/sdapi/v1/txt2img"
 

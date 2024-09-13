@@ -14,21 +14,30 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 # extremely affordable. While testing, I will use ollama when possible.
 global USING_MONEY
 USING_MONEY = True
+if "AC_USE_MONEY" in os.environ:
+    USING_MONEY=os.getenv("AC_USE_MONEY")
 
 # Do not generate image outputs
 global CREATE_IMAGES
 CREATE_IMAGES=True
+if "AC_CREATE_IMAGES" in os.environ:
+    CREATE_IMAGES=os.getenv("AC_CREATE_IMAGES")
 
 global DEBUG
 DEBUG=False
 if "AC_DEBUG" in os.environ:
-    print("~~~~~ We are in DEBUG MODE ~~~~~")
-    print("""
-    This means:
-    - only 1 character, location, and quest.
-          """)
-    DEBUG=True
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    DEBUG=os.getenv("AC_DEBUG")
+    
+    
+print(f"""
+-----------------------
+GPT MODE*: {USING_MONEY}
+CREATING IMAGES: {CREATE_IMAGES}
+DEBUG MODE: {DEBUG}
+
+* As of now, GPT is still required for map reading.
+-----------------------
+""")
 
 def world_builder_task(context, region, llms, output_queue):
     # This starts the region development chain. This looks like:
@@ -48,7 +57,7 @@ def world_builder_task(context, region, llms, output_queue):
     built = world_builder.region_development_chain()
     
     # save waypoint with all json for review
-    expanded_world_json_path = 'json_outputs/expanded_world_waypoint1.json'
+    expanded_world_json_path = 'output/json_outputs/expanded_world_waypoint1.json'
     with open(expanded_world_json_path, 'w') as file:
         json.dump(built, file, indent=4)
     
@@ -59,7 +68,7 @@ def world_builder_task(context, region, llms, output_queue):
             built = world_builder.region_illustration_chain_sd(llms[1])
     
         # save waypoint with images
-        expanded_world_json_path = 'json_outputs/expanded_world_waypoint2.json'
+        expanded_world_json_path = 'output/json_outputs/expanded_world_waypoint2.json'
         with open(expanded_world_json_path, 'w') as file:
             json.dump(built, file, indent=4)
     
@@ -141,7 +150,7 @@ def world_builder_runner(context_extractor, world, llms):
     world['regions'] = built_world
     
     # Save the updated world as a new JSON file
-    expanded_world_json_path = 'json_outputs/expanded_world.json'
+    expanded_world_json_path = 'output/json_outputs/expanded_world.json'
     with open(expanded_world_json_path, 'w') as file:
         json.dump(world, file, indent=4)
 
@@ -159,12 +168,17 @@ def main(prompt_file, map_image, settings):
     context_extractor = ContextExtractor(prompt_file, map_image, settings)
     
     # Check if the output directory exists, if not, create it
-    output_directory = 'json_outputs'
+    input_directory = 'input'
+    if not os.path.exists(input_directory):
+        os.makedirs(input_directory)
+    
+    # Check if the output directory exists, if not, create it
+    output_directory = 'output'
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
     # Check to see if base map description json file exists
-    json_output_path = 'json_outputs/map_description.json'
+    json_output_path = 'output/json_outputs/map_description.json'
     if os.path.exists(json_output_path):
         # Read JSON file
         print("- reading existing map description")
@@ -182,7 +196,7 @@ def main(prompt_file, map_image, settings):
         world = map_analyzer.identify_regions()
 
     # But basically, load the old world file, or createa  new one. 
-    expanded_world_json_path = 'json_outputs/expanded_world.json'
+    expanded_world_json_path = 'output/json_outputs/expanded_world.json'
     if os.path.exists(expanded_world_json_path):
         print("Existing world found. Do you want to use the existing world (option 1), or create a new one (option 2)?")
         user_option = input("Enter option number: ")
@@ -200,7 +214,7 @@ def main(prompt_file, map_image, settings):
                 
     # Create a output directory and run document generator
     # Create output directory if it doesn't exist
-    story_output_dir = 'story_output'
+    story_output_dir = 'output/story_html'
     if not os.path.exists(story_output_dir):
         os.makedirs(story_output_dir)
         
@@ -212,7 +226,7 @@ def main(prompt_file, map_image, settings):
     document_generator.generate_html()
     
     # remove waypoint files
-    waypoint_files = ['json_outputs/expanded_world_waypoint1.json', 'json_outputs/expanded_world_waypoint2.json']
+    waypoint_files = ['output/json_outputs/expanded_world_waypoint1.json', 'output/json_outputs/expanded_world_waypoint2.json']
     for waypoint in waypoint_files:
         if os.path.exists(waypoint):
             os.remove(waypoint)

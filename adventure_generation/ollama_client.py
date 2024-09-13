@@ -15,7 +15,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(
-    filename="llm_usage.log", level=logging.NOTSET, format="%(asctime)s - %(message)s"
+    filename="output/llm_usage.log", level=logging.NOTSET, format="%(asctime)s - %(message)s"
 )
 
 
@@ -23,7 +23,15 @@ class ollamaClient:
 
     def __init__(self):
         self.api_key = "ollama"
-        self.base_url = "http://192.168.1.115:11434"
+        
+        # Allow the user to specify and IP address for an Ollama server
+        if "AC_OLLAMA_SERVER" in os.environ:
+            self.base_url="http://{}:11434".format(
+                os.getenv("AC_OLLAMA_SERVER")
+            )
+        else:
+            self.base_url = "http://localhost:11434"
+            
         self.client = Client(host=self.base_url)
         self.jstructs = JsonStructures()
         self.general_use_model = "gemma2:9b"

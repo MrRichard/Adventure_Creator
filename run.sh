@@ -1,8 +1,9 @@
 #!/bin/bash
+if [ ! -d ".venv" ]; then
+    python3 -m venv .venv
+fi
 
-# Install dependencies
+source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run the main script
-python -m adventure_generation.main ./sample_inputs/ariel_coast.txt ./sample_inputs/ariel_coast.jpg ./sample_inputs/styles.json
-#python -m adventure_generation.main ./sample_inputs/LoneTreeCrossing.txt ./sample_inputs/LoneTreeCrossing.jpg ./sample_inputs/styles.json
+python -m adventure_generation.main $1 $2 $3

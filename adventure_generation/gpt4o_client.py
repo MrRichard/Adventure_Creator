@@ -16,7 +16,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(
-    filename="llm_usage.log", level=logging.DEBUG, format="%(asctime)s - %(message)s"
+    filename="output/llm_usage.log", level=logging.DEBUG, format="%(asctime)s - %(message)s"
 )
 
 
