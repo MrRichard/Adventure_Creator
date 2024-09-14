@@ -255,7 +255,7 @@ class GPT4oClient:
         prompt = """
         INSTRUCTIONS: Create a fictional signficant locations for the location of {}, a {}.
         Write a brief but creative description of the physical description and appearance of a place.
-        This place maybe any location found in the region such as a farm, an inn or a famous building.
+        This place maybe any location found in the region such as a farm, a graveytard, an inn, or a famous building.
         Be creative and please pay attention to the World Info and Region description. 
         Well-written content that feels well placed in the world will be greatly appreciated by the reader.
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
@@ -293,7 +293,7 @@ class GPT4oClient:
         prompt = """
         INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}. 
         Please randomly choose a gender for this person. Then, based on the World Info, determine a probability for each race and roll randomly. 
-        You can also randomly roll some standard attributes such as "Strength, Charisma, Wisdom, Dexterity, Constituion", but you don't need to report those numbers. Just use them to inform your character development.
+        You can also randomly roll some standard attributes such as "Strength, Charisma, Wisdom, Dexterity, Constitution", but you don't need to report those numbers. Just use them to inform your character development.
         You can also randomly choose if you want this to be a good, bad, or indifferent opportunistic character.
         Interesting characters that seem to belong to their location or have a tie to the region will be valued by the audience. 
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
@@ -431,7 +431,7 @@ class GPT4oClient:
         character_description,
         world_info,
         illustration_style,
-        image_storage="character_illustrations",
+        image_storage="output/character_illustrations",
     ):
 
         # Do not use promptless
@@ -473,7 +473,7 @@ class GPT4oClient:
         location_description,
         world_info,
         illustration_style,
-        image_storage="location_maps",
+        image_storage="output/location_maps",
     ):
 
         # Do not use promptless

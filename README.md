@@ -70,15 +70,16 @@ Provide a map image and automatically generate (when it works) a random number o
     ./sample_inputs/styles.json
     ```
 
-## Docker container usage
+## Docker container usage (Experimental)
 ```bash
-$ docker run --rm \
+$ docker run --rm -i \
 -e OPENAI_API_KEY=$OPENAI_API_KEY \
 -v ./sample_inputs/:/app/input/ \
 -v ./output/:/app/output/ \
 mrrichard/adventure_creator:1.0 \
 /app/input/ariel_coast.txt /app/input/ariel_coast.jpg /app/input/styles.json
 ```
+Please note: as of now, progress and updates are no printed to STDOUT when using the container. You will need to tail `llm_usage.log` for updates.
 
 ## Control Function with Environmental Variables
 | Variable                | Description                                                              | Options                                                                                 |

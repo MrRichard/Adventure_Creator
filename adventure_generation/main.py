@@ -34,6 +34,7 @@ print(f"""
 GPT MODE*: {USING_MONEY}
 CREATING IMAGES: {CREATE_IMAGES}
 DEBUG MODE: {DEBUG}
+CWD: {os.getcwd()}
 
 * As of now, GPT is still required for map reading.
 -----------------------
@@ -96,7 +97,7 @@ def world_builder_runner(context_extractor, world, llms):
             
         # DEBUG: Let's do this the right way
         
-        if DEBUG is True:
+        if DEBUG:
             region['num_locations'] = 1
             region['num_characters'] = 1
             region['quests'] = 1
@@ -107,7 +108,7 @@ def world_builder_runner(context_extractor, world, llms):
         print(f"Warning: All queries will use OpenAI GPT 4o, 4o-mini, 3.5-turbo, and DALL-E 3.")
     else:
         print(f"You are running in FREE MODE and will use a local ollama server")
-    user_confirmation = input("Enter 'yes' to proceed, or any other key to stop: ")
+    user_confirmation = input("Enter 'yes' to proceed, or any other key to stop:")
     
     if user_confirmation.lower() != 'yes':
         print("Process stopped by user.")
@@ -195,7 +196,7 @@ def main(prompt_file, map_image, settings):
         # This is so cool
         world = map_analyzer.identify_regions()
 
-    # But basically, load the old world file, or createa  new one. 
+    # But basically, load the old world file, or create a new one. 
     expanded_world_json_path = 'output/json_outputs/expanded_world.json'
     if os.path.exists(expanded_world_json_path):
         print("Existing world found. Do you want to use the existing world (option 1), or create a new one (option 2)?")
@@ -214,7 +215,7 @@ def main(prompt_file, map_image, settings):
                 
     # Create a output directory and run document generator
     # Create output directory if it doesn't exist
-    story_output_dir = 'output/story_html'
+    story_output_dir = 'output/story_html/'
     if not os.path.exists(story_output_dir):
         os.makedirs(story_output_dir)
         

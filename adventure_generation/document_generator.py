@@ -25,9 +25,3 @@ class DocumentGenerator:
 def main(json_path, template_dir, output_dir):
     generator = DocumentGenerator(json_path, template_dir, output_dir)
     generator.generate_html()
-
-if __name__ == "__main__":
-    json_path = sys.argv[1]
-    template_dir = sys.argv[2]
-    output_dir = sys.argv[3]
-    main(json_path, template_dir, output_dir)

@@ -8,3 +8,5 @@ character_illustrations
 story_output
 *.log
 .venv/
+input/*
+output/*

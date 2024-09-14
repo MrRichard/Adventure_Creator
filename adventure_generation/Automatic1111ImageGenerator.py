@@ -49,7 +49,7 @@ class Automatic1111ImageGenerator:
         # Sending request
         response = self._send_request(payload)
         if response and "images" in response:
-            output_dir = "character_illustrations"
+            output_dir = "output/character_illustrations"
             os.makedirs(output_dir, exist_ok=True)
 
             filename = (
