@@ -15,18 +15,23 @@ from adventure_generation.ollama_client import ollamaClient # for local runs
 global USING_MONEY
 USING_MONEY = True
 if "AC_USE_MONEY" in os.environ:
-    USING_MONEY=os.getenv("AC_USE_MONEY")
+    if os.getenv("AC_USE_MONEY") != "True":
+        USING_MONEY=False
+        
 
 # Do not generate image outputs
 global CREATE_IMAGES
 CREATE_IMAGES=True
 if "AC_CREATE_IMAGES" in os.environ:
-    CREATE_IMAGES=os.getenv("AC_CREATE_IMAGES")
+    if os.getenv("AC_CREATE_IMAGES") != "True":
+        CREATE_IMAGES=False
+
 
 global DEBUG
 DEBUG=False
 if "AC_DEBUG" in os.environ:
-    DEBUG=os.getenv("AC_DEBUG")
+    if os.getenv("AC_DEBUG") =="True":
+        DEBUG=True
     
     
 print(f"""

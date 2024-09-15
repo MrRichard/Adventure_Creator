@@ -19,6 +19,8 @@ class WorldBuilder:
         self.optimized_style = self._optimize_user_input(
             self.context_extractor.get_writing_style()
         )
+        
+        print(self.llm_client)
 
     def _optimize_user_input(self, input_copy):
         optimized_copy = self.llm_client._summarize_context(input_copy)

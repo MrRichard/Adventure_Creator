@@ -34,7 +34,8 @@ class ollamaClient:
             
         self.client = Client(host=self.base_url)
         self.jstructs = JsonStructures()
-        self.general_use_model = "gemma2:9b"
+        #self.general_use_model = "gemma2:9b"
+        self.general_use_model = "phi3.5"
 
         logging.info("Ollama NATIVE Client initiated")
 

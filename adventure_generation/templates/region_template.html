@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ region.LocationName }}</title>
-    <link rel="stylesheet" href="../story_styling/styles.css">
+    <link rel="stylesheet" href="../../story_styling/styles.css">
 </head>
 <body>
     <h1>Chapter: {{ region.LocationName }}</h1>
@@ -20,7 +20,7 @@
         {% for loc in region.locations.values() %}
         <div>
             <h3>{{ loc.name }}</h3>
-            <img src="../{{ loc.illustration }}" alt="Location Image" class="{% if loop.index is odd %}image-left{% else %}image-right{% endif %}">
+            <img src="../../{{ loc.illustration }}" alt="Location Image" class="{% if loop.index is odd %}image-left{% else %}image-right{% endif %}">
             <p>{{ loc.description }}</p>
             <p>{{ loc.lore }}</p>
         </div>
@@ -34,7 +34,7 @@
         {% for char in region.characters.values() %}
         <div>
             <h3>{{ char.name }}</h3>
-            <img src="../{{ char.portrait }}" alt="Character Portrait" class="{% if loop.index is odd %}image-left{% else %}image-right{% endif %}">
+            <img src="../../{{ char.portrait }}" alt="Character Portrait" class="{% if loop.index is odd %}image-left{% else %}image-right{% endif %}">
             <p>{{ char.description }}</p>
             <p>{{ char.personality }}</p>
         </div>
