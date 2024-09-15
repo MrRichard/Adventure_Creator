@@ -90,7 +90,7 @@ Please note: as of now, progress and updates are no printed to STDOUT when using
 | `AC_DEBUG`             | Enable debug mode to simplify task and check the flow.                 | `True` or `False` (default is `False`).                                             |
 | `AC_OLLAMA_SERVER`     | IP address of the Ollama server instance to connect to.                | Valid IP address or localhost (default is `localhost`*).                |
 | `AC_AUTO1111_SERVER`   | IP address of the AUTOMATIC1111 server instance to connect to.         | Valid IP address or localhost (default is `localhost`*).
-
+| `AC_MAX_THREADS`       | Number of World Builder Threads making API calls                       | Int (default is 2 ).                                                     |
 
 \* HTTP only. HTTPS will require changing code. Default port numbers will be applied:
 - Ollama port 111434
