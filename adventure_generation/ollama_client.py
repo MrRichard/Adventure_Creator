@@ -18,7 +18,6 @@ logging.basicConfig(
     filename="output/llm_usage.log", level=logging.NOTSET, format="%(asctime)s - %(message)s"
 )
 
-
 class ollamaClient:
 
     def __init__(self):
@@ -34,8 +33,7 @@ class ollamaClient:
             
         self.client = Client(host=self.base_url)
         self.jstructs = JsonStructures()
-        #self.general_use_model = "gemma2:9b"
-        self.general_use_model = "phi3.5"
+        self.general_use_model = "llama3.1"
 
         logging.info("Ollama NATIVE Client initiated")
 
@@ -95,7 +93,10 @@ class ollamaClient:
 
     # This service function organizes and summarizes the users initial input txt
     def _summarize_context(self, input_prompt):
-        prompt = "Please summarize the user's input text into a shortened and organized format optimized for use later as context for language models:\n"
+        prompt = """
+        Summarize the user's input text into a shortened and organized format optimized for use later as context for language models.
+        BEGIN USER INPUT:\n
+        """
         prompt += input_prompt
         response = self.client.chat(
             model=self.general_use_model,
@@ -166,7 +167,7 @@ class ollamaClient:
         )
 
         # Adding a delay to prevent hitting rate limits
-        time.sleep(1)
+        time.sleep(10)
         logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
         logging.debug(f">> OUTPUT FROM LLM:\n{response['message']['content']}\n")
         return response["message"]["content"].strip()
@@ -211,7 +212,7 @@ class ollamaClient:
 
     def generate_location(self, region, world_info="", style_input=""):
         prompt = """
-        INSTRUCTIONS: Create a fictional signficant locations for the location of {}, a {}.
+        INSTRUCTIONS: Create a unique fictional signficant locations for the location of {}, a {}.
         Region Short Description: {}
         World Info: {}
         Writing Style: {}
@@ -242,7 +243,7 @@ class ollamaClient:
 
     def generate_character(self, region, world_info="", style_input=""):
         prompt = """
-        INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}.
+        INSTRUCTIONS: Create a unique fictional character for the location of {}, a {}.
         Region Short Description: {}
         World Info: {}
         Writing Style: {}

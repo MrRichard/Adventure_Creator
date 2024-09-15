@@ -91,28 +91,34 @@ def world_builder_runner(context_extractor, world, llms):
             region['num_locations'] = random.randint(4, 10)
             region['num_characters'] = random.randint(4, 10)
             region['quests'] = random.randint(1, 6)
+            region['encounters'] = 10
+            
         elif region['LocationType'] == 'smallTown':
             region['num_locations'] = random.randint(2, 6)
             region['num_characters'] = random.randint(2, 6)
             region['quests'] = random.randint(1, 2)
+            region['encounters'] = 8
+            
         elif region['LocationType'] == 'other' or region['LocationType'] == 'NaturalFeature':
             region['num_locations'] = random.randint(1, 2)
             region['num_characters'] = random.randint(1, 4)
             region['quests'] = random.randint(1, 4)
+            region['encounters']  = 6
             
-        # DEBUG: Let's do this the right way
-        
+        # minimize 
         if DEBUG:
             region['num_locations'] = 1
             region['num_characters'] = 1
             region['quests'] = 1
+            region['encounters'] = 1
         
     # Warn the user about the number of queries
-    print(f"Warning: about to perform 'very many' API calls. Generally more than 100 per map location. Please confirm if this is okay.")
     if USING_MONEY == True:
+        print(f"Warning: about to perform 'very many' API calls. Generally more than 100 per map location. Please confirm if this is okay.")
         print(f"Warning: All queries will use OpenAI GPT 4o, 4o-mini, 3.5-turbo, and DALL-E 3.")
     else:
         print(f"You are running in FREE MODE and will use a local ollama server")
+        print(f"Warning: about to perform 'very many' API calls. This will take some time. Please confirm if this is okay.")
     user_confirmation = input("Enter 'yes' to proceed, or any other key to stop:")
     
     if user_confirmation.lower() != 'yes':
@@ -128,7 +134,11 @@ def world_builder_runner(context_extractor, world, llms):
         region_queue.put(region)
 
     threads = []
-    max_threads = 3
+    if os.getenv("AC_MAX_THREADS") and os.getenv("AC_MAX_THREADS").isdigit():
+        max_threads = int(os.getenv("AC_MAX_THREADS"))
+    else:
+        max_threads = 2
+    
     
     # We are giving the worker the context_extractor object, along with our chosen llm model
     # TODO: review how the LLM logic is used. We might only need to do this once.
@@ -161,6 +171,7 @@ def world_builder_runner(context_extractor, world, llms):
         json.dump(world, file, indent=4)
 
 def main(prompt_file, map_image, settings):
+    
     # Initialize LLM clients (both)
     gpt4o_client = GPT4oClient()
     ollama_client=None
@@ -200,6 +211,22 @@ def main(prompt_file, map_image, settings):
         
         # This is so cool
         world = map_analyzer.identify_regions()
+        
+    # Optimize the users text input
+    print("- Parsing user text input")
+    if USING_MONEY == True:
+        context_extractor.optimized_context = gpt4o_client._summarize_context(context_extractor.get_context())
+        context_extractor.optimized_writing_style = gpt4o_client._summarize_context(
+            context_extractor.get_writing_style())
+        context_extractor.optimized_visual_style = gpt4o_client._summarize_context(
+            context_extractor.get_visual_style())
+    else:
+        context_extractor.optimized_context = ollama_client._summarize_context(context_extractor.get_context())
+        context_extractor.optimized_writing_style = ollama_client._summarize_context(
+            context_extractor.get_writing_style())
+        context_extractor.optimized_visual_style = ollama_client._summarize_context(
+            context_extractor.get_visual_style())
+        
 
     # But basically, load the old world file, or create a new one. 
     expanded_world_json_path = 'output/json_outputs/expanded_world.json'

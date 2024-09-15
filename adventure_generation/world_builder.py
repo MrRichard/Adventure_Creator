@@ -13,14 +13,9 @@ class WorldBuilder:
         else:
             raise ValueError("World must be either a dictionary or a JSON string.")
         self.llm_client = llm_client
-        self.optimized_context = self._optimize_user_input(
-            self.context_extractor.get_context()
-        )
-        self.optimized_style = self._optimize_user_input(
-            self.context_extractor.get_writing_style()
-        )
-        
-        print(self.llm_client)
+        self.optimized_context = context_extractor_object.optimized_context
+        self.optimized_writing_style = context_extractor_object.optimized_writing_style
+        self.optimized_visual_style = context_extractor_object.optimized_visual_style
 
     def _optimize_user_input(self, input_copy):
         optimized_copy = self.llm_client._summarize_context(input_copy)
@@ -38,7 +33,7 @@ class WorldBuilder:
         # Step 1 - Run Create Region Description
         print(f"{self.region['LocationName']} - Creating a regional description")
         regional_description = self.llm_client.generate_detailed_region_description(
-            self.region, self.optimized_context, self.optimized_style
+            self.region, self.optimized_context, self.optimized_writing_style
         )
         self.region.update(regional_description)
 
@@ -49,7 +44,7 @@ class WorldBuilder:
         )
         for i in range(self.region["num_locations"]):
             loc = self.llm_client.generate_location(
-                self.region, self.optimized_context, self.optimized_style
+                self.region, self.optimized_context, self.optimized_writing_style
             )
 
             if "name" not in loc.keys():
@@ -66,7 +61,7 @@ class WorldBuilder:
         )
         for i in range(self.region["num_characters"]):
             char = self.llm_client.generate_character(
-                self.region, self.optimized_context, self.optimized_style
+                self.region, self.optimized_context, self.optimized_writing_style
             )
             if "name" not in char.keys():
                 char["name"] = f"Character #{i+1}"
@@ -81,7 +76,7 @@ class WorldBuilder:
         created_quests = {}
         for i in range(1, 7):
             quest = self.llm_client.generate_regional_drama(
-                self.region, self.optimized_style
+                self.region, self.optimized_writing_style
             )
             created_quests[i] = quest
         self.region["quests"] = created_quests
@@ -89,7 +84,7 @@ class WorldBuilder:
         # Step 5  - Create a random encounter table
         print(f"{self.region['LocationName']} - Generating a random encounter table")
         created_encounters = {}
-        for i in range(1, 11):
+        for i in range(self.region["encounters"]):
             encounter = self.llm_client.generate_random_encounter(
                 self.region, self.optimized_context
             )
@@ -137,7 +132,7 @@ class WorldBuilder:
             print(" > Optimizing prompt for Stable Diffusion")
             new_prompt = llm.optimize_for_stable_diffusion(
                 self.region["characters"][character]["description"],
-                self.context_extractor.get_visual_style(),
+                self.optimized_visual_style,
             )
 
             print(" > Generating Character Portrait")

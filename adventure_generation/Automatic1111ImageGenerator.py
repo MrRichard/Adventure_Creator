@@ -14,7 +14,7 @@ class Automatic1111ImageGenerator:
         # Allow the user to specify and IP address for an AUTOMATIC1111 server
         if "AC_AUTO1111_SERVER" in os.environ:
             self.base_url="http://{}:7860".format(
-                os.getenv("AUTO1111")
+                os.getenv("AC_AUTO1111_SERVER")
             )
         else:
             self.base_url = base_url
