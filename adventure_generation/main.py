@@ -21,11 +21,17 @@ if "AC_USE_MONEY" in os.environ:
 
 # Do not generate image outputs
 global CREATE_IMAGES
+global AUTO1111_SERVER
+AUTO1111_SERVER='localhost'
 CREATE_IMAGES=True
 if "AC_CREATE_IMAGES" in os.environ:
     if os.getenv("AC_CREATE_IMAGES") != "True":
         CREATE_IMAGES=False
-
+    
+    if USING_MONEY == False and CREATE_IMAGES==True:
+        
+        if os.getenv("AC_AUTO1111_SERVER"):
+            AUTO1111_SERVER=os.getenv("AC_AUTO1111_SERVER")
 
 global DEBUG
 DEBUG=False

@@ -121,7 +121,6 @@ class WorldBuilder:
         from adventure_generation.Automatic1111ImageGenerator import (
             Automatic1111ImageGenerator,
         )
-
         A1gen = Automatic1111ImageGenerator()
 
         # Step 6 - Create character portraits

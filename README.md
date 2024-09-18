@@ -1,6 +1,6 @@
 # AI Adventure Creator
 
-Welcome to AI Adventure Creator! This project is a learning project for me (so some of the code is sketchy at best). The idea is to created scripted interactions with remote Large Language Models (LLM) that take a simple map image and create ttrpg world resources. Utilizing a multi-threaded approach, this tool spends your money to bring your campaign ideas to life through the use of LLM and AI image generation.
+Welcome to AI Adventure Creator! This project is a learning project for me (so some of the code is sketchy at best). The idea is to created scripted interactions with remote Large Language Models (LLM) that take a simple map image and create ttrpg world resources. Utilizing a multi-threaded approach, this tool spends your money to bring semi-random campaign ideas to life through the use of LLM and AI image generation.
 
 ## Features
 

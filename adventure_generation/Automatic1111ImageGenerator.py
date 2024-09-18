@@ -19,8 +19,6 @@ class Automatic1111ImageGenerator:
         else:
             self.base_url = base_url
             
-            
-        self.base_url = base_url
         self.api_endpoint = f"{self.base_url}/sdapi/v1/txt2img"
 
     def _send_request(self, payload):
