@@ -36,6 +36,13 @@ class WorldBuilder:
             self.region, self.optimized_context, self.optimized_writing_style
         )
         self.region.update(regional_description)
+        
+        # Step 1.5 - Create regional demographics
+        print(f"{self.region['LocationName']} - Creating a regional demographics")
+        regional_demographics = self.llm_client.generate_regional_demographics(
+            self.region, self.optimized_context, self.optimized_writing_style
+        )
+        self.region.update(regional_demographics)
 
         # Step 2 - Create the locations
         created_locations = {}

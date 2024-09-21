@@ -287,17 +287,49 @@ class GPT4oClient:
             response_format={"type": "json_object"},
         )
         return self._parse_json(response.choices[0].message.content)
+    
+    # this a helper class for characters
+    def _roll_d100(self, attribute_data):
+        roll = random.randint(1, 100)
+        for option, (lower, upper) in attribute_data.items():
+            if lower <= roll <= upper:
+                return option
+            
+    def _convert_to_ranges(self, values):
+        attribute_ranges = {}
+        lower_bound = 1
+        for option, percentage in values.items():
+            upper_bound = lower_bound + percentage - 1
+            attribute_ranges[option] = [lower_bound, upper_bound]
+            lower_bound = upper_bound + 1
+        return attribute_ranges
 
     # Write character 
     def generate_character(self, region, world_info="", style_input=""):
+        
+        # Get demographics for the region
+        demographics = region.get('demographics', {})
+        
+        # Convert percentages to cumulative ranges for all keys in demographics
+        demographics_ranges = {}
+        for key in demographics:
+            demographics_ranges[key] = self._convert_to_ranges(demographics[key])
+
+        # now demographics_ranges is a dictionary containing range information for each key in demographics
+        str_attributes = []
+        for attribute, attribute_data in demographics_ranges.items():
+            rolled_value = self._roll_d100(attribute_data)
+            str_attributes.append(f"{attribute.capitalize()}: {rolled_value}")
+
+        final_string = "This character is a " + ", ".join(str_attributes) + "."
+
         prompt = """
         INSTRUCTIONS: Create a fictional signficant character for the location of {}, a {}. 
-        Please randomly choose a gender for this person. Then, based on the World Info, determine a probability for each race and roll randomly. 
+        {}
         You can also randomly roll some standard attributes such as "Strength, Charisma, Wisdom, Dexterity, Constitution", but you don't need to report those numbers. Just use them to inform your character development.
         You can also randomly choose if you want this to be a good, bad, or indifferent opportunistic character.
-        Interesting characters that seem to belong to their location or have a tie to the region will be valued by the audience. 
         Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
-        The output should consist of three items: "name", "description" and "personality"
+        The output should consist of at least three items: "name", "description" and "personality"
         If data doesn't fit predefined fields within a section, use the "other" field for that section.
         Region Short Description: {}
         World Info: {}
@@ -306,6 +338,7 @@ class GPT4oClient:
         """.format(
             region["LocationName"],
             region["LocationType"],
+            final_string,
             region["ShortDescription"],
             world_info,
             style_input,
@@ -507,3 +540,43 @@ class GPT4oClient:
 
         # Get the generated image URL
         return self._parse_url(response.data[0].url, image_storage)
+    
+    def generate_regional_demographics(
+        self, region, world_info="", style_input=""
+    ):
+        if region == "":
+            return {}
+
+        prompt = """
+        INSTRUCTIONS: Based on the provided region and world information, generate a list of possible races, genders, and classes or occupations that might be found in this region. Provide a probability or range table for each.
+        Region Name: {} - a {}.
+        Region Short Description: {}
+        World Info: {}
+        Writing Style: {}
+        Please return this information in JSON format. Please always provide correct json syntax. Use object notation, not arrays.
+        This content should be in the "demographics" object. Use this template:
+        Example JSON: 
+        """.format(
+            region["LocationName"],
+            region["LocationType"],
+            region["ShortDescription"],
+            world_info,
+            style_input,
+        )
+        prompt += self.jstructs.regional_demographics()
+
+        if self._get_size_of_string(prompt) >= 15:
+            print(" - Shortening prompt")
+            prompt = self._shorten_prompt(prompt)
+            logging.warning(prompt)
+
+        logging.debug(f"<< INPUT TO LLM:\n{prompt}\n")
+
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=self._create_messages(prompt),
+            max_tokens=1000,
+            temperature=1.1,
+            response_format={"type": "json_object"},
+        )
+        return self._parse_json(response.choices[0].message.content)
